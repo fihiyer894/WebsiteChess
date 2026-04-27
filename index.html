@@ -3,237 +3,543 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Шахова школа для дітей та дорослих. Онлайн та офлайн заняття, досвідчені тренери, індивідуальний підхід. Запишіться на пробне заняття.">
-<title>CombinationChess — Шахова школа для дітей та дорослих</title>
+<meta name="description" content="Шахова школа CombinationChess для дітей та дорослих у Києві. Онлайн і офлайн заняття, досвідчені тренери. Перше заняття безкоштовно.">
+<title>CombinationChess — Шахова школа · Київ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0d0d0d;
-    --surface: #161616;
-    --surface2: #1e1e1e;
-    --gold: #c9a84c;
-    --gold-light: #e8c97a;
-    --gold-dim: rgba(201,168,76,0.15);
-    --text: #f0ece4;
-    --text-muted: #8a8278;
-    --border: rgba(201,168,76,0.2);
-    --radius: 4px;
-    --serif: 'Cormorant Garamond', serif;
-    --sans: 'DM Sans', sans-serif;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-weight: 300;
-    line-height: 1.6;
-    overflow-x: hidden;
-    background-image: repeating-conic-gradient(rgba(201,168,76,0.04) 0% 25%, transparent 0% 50%);
-    background-size: 40px 40px;
-  }
-  header {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    padding: 0 clamp(1.5rem,5vw,4rem); height: 72px;
-    display: flex; align-items: center; justify-content: space-between;
-    background: rgba(13,13,13,0.92); backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-  }
-  .logo { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: var(--gold); letter-spacing: .05em; text-decoration: none; }
-  .logo span { color: var(--text); }
-  nav { display: flex; align-items: center; gap: 2rem; }
-  nav a { color: var(--text-muted); text-decoration: none; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; transition: color .2s; }
-  nav a:hover { color: var(--gold); }
-  .btn-primary {
-    background: var(--gold); color: #0d0d0d; border: none;
-    padding: .65rem 1.6rem; font-family: var(--sans); font-size: .82rem;
-    font-weight: 500; letter-spacing: .1em; text-transform: uppercase;
-    cursor: pointer; text-decoration: none; display: inline-block;
-    transition: background .2s, transform .15s; border-radius: var(--radius);
-  }
-  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
-  .btn-outline {
-    background: transparent; color: var(--gold); border: 1px solid var(--gold);
-    padding: .65rem 1.6rem; font-family: var(--sans); font-size: .82rem;
-    font-weight: 500; letter-spacing: .1em; text-transform: uppercase;
-    cursor: pointer; text-decoration: none; display: inline-block;
-    transition: all .2s; border-radius: var(--radius);
-  }
-  .btn-outline:hover { background: var(--gold-dim); }
-  .burger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
-  .burger span { display: block; width: 24px; height: 1.5px; background: var(--text); transition: all .3s; }
+/* ════════════════════════════════════════
+   ROOT & RESET
+════════════════════════════════════════ */
+:root {
+  --bg:#0d0d0d; --surface:#141414; --surface2:#1c1c1c;
+  --gold:#c9a84c; --gold-light:#e8c97a; --gold-dim:rgba(201,168,76,.14);
+  --text:#f0ece4; --text-muted:#7a766e;
+  --border:rgba(201,168,76,.18);
+  --radius:6px;
+  --serif:'Cormorant Garamond',serif;
+  --sans:'DM Sans',sans-serif;
+  --ease-out-expo:cubic-bezier(.16,1,.3,1);
+  --ease-in-out:cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:var(--sans);font-weight:300;line-height:1.65;
+  overflow-x:hidden;cursor:none;
+}
+::selection{background:var(--gold);color:#0d0d0d}
 
-  #hero {
-    min-height: 100vh; display: flex; align-items: center;
-    padding: 100px clamp(1.5rem,5vw,4rem) 4rem; position: relative; overflow: hidden;
-  }
-  .hero-board {
-    position: absolute; right: -60px; top: 50%; transform: translateY(-50%);
-    width: min(55vw,680px); opacity: .18; pointer-events: none;
-    font-size: clamp(60px,8vw,120px); line-height: 1;
-    display: grid; grid-template-columns: repeat(8,1fr); filter: blur(.5px);
-  }
-  .hero-board .sq { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
-  .hero-board .sq.d { background: rgba(201,168,76,0.12); }
-  .hero-content { position: relative; z-index: 2; max-width: 600px; }
-  .hero-tag {
-    display: inline-flex; align-items: center; gap: .6rem;
-    border: 1px solid var(--border); padding: .35rem 1rem; border-radius: 100px;
-    font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gold);
-    margin-bottom: 2rem; opacity: 0; animation: fadeUp .6s .1s ease forwards;
-  }
-  .hero-tag::before { content: '♟'; }
-  h1 {
-    font-family: var(--serif); font-size: clamp(2.8rem,6vw,5.5rem); font-weight: 700;
-    line-height: 1.05; letter-spacing: -.01em; margin-bottom: 1.5rem;
-    opacity: 0; animation: fadeUp .7s .25s ease forwards;
-  }
-  h1 em { color: var(--gold); font-style: normal; }
-  .hero-sub {
-    font-size: 1.05rem; color: var(--text-muted); max-width: 480px;
-    margin-bottom: 2.5rem; opacity: 0; animation: fadeUp .7s .4s ease forwards;
-  }
-  .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; opacity: 0; animation: fadeUp .7s .55s ease forwards; }
-  .hero-stats {
-    display: flex; gap: 2.5rem; margin-top: 4rem; padding-top: 2rem;
-    border-top: 1px solid var(--border); opacity: 0; animation: fadeUp .7s .7s ease forwards; flex-wrap: wrap;
-  }
-  .stat-num { font-family: var(--serif); font-size: 2rem; font-weight: 600; color: var(--gold); }
-  .stat-label { font-size: .78rem; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+/* ════════════════════════════════════════
+   PAGE LOADER
+════════════════════════════════════════ */
+#loader{
+  position:fixed;inset:0;z-index:9999;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:1.5rem;
+  transition:opacity .6s var(--ease-out-expo),visibility .6s;
+}
+#loader.done{opacity:0;visibility:hidden;pointer-events:none}
+.loader-logo{
+  font-family:var(--serif);font-size:2rem;font-weight:700;
+  color:var(--gold);letter-spacing:.06em;
+  animation:loaderPulse 1.4s ease-in-out infinite;
+}
+.loader-logo span{color:var(--text)}
+.loader-bar{
+  width:160px;height:1px;background:rgba(201,168,76,.15);
+  position:relative;overflow:hidden;
+}
+.loader-bar::after{
+  content:'';position:absolute;left:-100%;top:0;width:100%;height:100%;
+  background:var(--gold);animation:loaderSlide 1.4s var(--ease-out-expo) infinite;
+}
+@keyframes loaderPulse{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes loaderSlide{0%{left:-100%}100%{left:100%}}
 
-  section { padding: clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem); }
-  .section-label { font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: .8rem; }
-  .section-title { font-family: var(--serif); font-size: clamp(2rem,4vw,3.2rem); font-weight: 700; line-height: 1.1; margin-bottom: 1rem; }
-  .section-sub { color: var(--text-muted); max-width: 540px; margin-bottom: 3.5rem; }
+/* ════════════════════════════════════════
+   CUSTOM CURSOR
+════════════════════════════════════════ */
+#cursor-dot,#cursor-ring{
+  position:fixed;border-radius:50%;pointer-events:none;
+  z-index:9998;mix-blend-mode:difference;will-change:transform;
+}
+#cursor-dot{
+  width:6px;height:6px;background:#fff;
+  transform:translate(-50%,-50%);transition:transform .08s linear;
+}
+#cursor-ring{
+  width:36px;height:36px;border:1px solid rgba(255,255,255,.5);
+  transform:translate(-50%,-50%);
+  transition:transform .18s var(--ease-out-expo),
+             width .3s var(--ease-out-expo),
+             height .3s var(--ease-out-expo),
+             border-color .3s;
+}
+#cursor-ring.hovering{width:56px;height:56px;border-color:var(--gold)}
+#cursor-ring.clicking{width:28px;height:28px}
+@media(pointer:coarse){#cursor-dot,#cursor-ring{display:none}body{cursor:auto}}
 
-  #about { background: var(--surface); }
-  .advantages-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 1.5px; background: var(--border); border: 1px solid var(--border); }
-  .adv-card { background: var(--surface); padding: 2.5rem 2rem; transition: background .25s; position: relative; overflow: hidden; }
-  .adv-card::before { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: var(--gold); transition: width .35s ease; }
-  .adv-card:hover { background: var(--surface2); }
-  .adv-card:hover::before { width: 100%; }
-  .adv-icon { font-size: 2rem; margin-bottom: 1.2rem; }
-  .adv-title { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; margin-bottom: .6rem; }
-  .adv-desc { font-size: .88rem; color: var(--text-muted); line-height: 1.7; }
+/* ════════════════════════════════════════
+   PARTICLE CANVAS
+════════════════════════════════════════ */
+#particle-canvas{
+  position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.6;
+}
 
-  .prog-tabs { display: flex; border: 1px solid var(--border); width: fit-content; margin-bottom: 3rem; border-radius: var(--radius); overflow: hidden; flex-wrap: wrap; }
-  .prog-tab { padding: .6rem 1.5rem; font-size: .82rem; font-weight: 500; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; background: transparent; color: var(--text-muted); border: none; transition: all .2s; font-family: var(--sans); }
-  .prog-tab.active { background: var(--gold); color: #0d0d0d; }
-  .prog-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 1.5rem; }
-  .prog-card { background: var(--surface); border: 1px solid var(--border); padding: 2.5rem 2rem; border-radius: var(--radius); transition: border-color .25s; }
-  .prog-card:hover { border-color: var(--gold); }
-  .prog-badge { display: inline-block; font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; padding: .25rem .8rem; border: 1px solid var(--border); color: var(--text-muted); border-radius: 100px; margin-bottom: 1.5rem; }
-  .prog-name { font-family: var(--serif); font-size: 1.5rem; font-weight: 600; margin-bottom: .8rem; }
-  .prog-desc { font-size: .88rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.7; }
-  .prog-meta { display: flex; flex-direction: column; gap: .5rem; }
-  .prog-meta span { font-size: .8rem; color: var(--text-muted); }
-  .prog-meta span strong { color: var(--text); font-weight: 400; }
-  .prog-panel { display: none; }
-  .prog-panel.active { display: block; }
+/* ════════════════════════════════════════
+   HEADER / NAV
+════════════════════════════════════════ */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:0 clamp(1.5rem,5vw,4rem);height:72px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(13,13,13,0);backdrop-filter:blur(0px);
+  border-bottom:1px solid transparent;
+  transition:background .5s,backdrop-filter .5s,border-color .5s;
+}
+header.scrolled{
+  background:rgba(13,13,13,.88);backdrop-filter:blur(20px);
+  border-color:var(--border);
+}
+.logo{
+  font-family:var(--serif);font-size:1.45rem;font-weight:700;
+  color:var(--gold);letter-spacing:.04em;text-decoration:none;
+  white-space:nowrap;position:relative;z-index:1;
+}
+.logo span{color:var(--text)}
+nav{display:flex;align-items:center;gap:2rem}
+nav a{
+  color:var(--text-muted);text-decoration:none;font-size:.82rem;
+  letter-spacing:.09em;text-transform:uppercase;
+  transition:color .2s;position:relative;
+}
+nav a::after{
+  content:'';position:absolute;left:0;bottom:-2px;
+  width:0;height:1px;background:var(--gold);
+  transition:width .3s var(--ease-out-expo);
+}
+nav a:hover{color:var(--gold)}
+nav a:hover::after{width:100%}
 
-  #prices { background: var(--surface); }
-  .prices-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 1.5rem; align-items: start; }
-  .price-card { background: var(--bg); border: 1px solid var(--border); padding: 2.5rem 2rem; border-radius: var(--radius); position: relative; transition: all .25s; }
-  .price-card:hover { border-color: var(--gold); transform: translateY(-4px); }
-  .price-card.popular { background: var(--gold-dim); border-color: var(--gold); }
-  .popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #0d0d0d; font-size: .68rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; padding: .2rem 1rem; border-radius: 100px; white-space: nowrap; }
-  .price-name { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.2rem; }
-  .price-amount { font-family: var(--serif); font-size: 3rem; font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: .3rem; }
-  .price-period { font-size: .8rem; color: var(--text-muted); margin-bottom: 1.8rem; }
-  .price-features { list-style: none; margin-bottom: 2rem; display: flex; flex-direction: column; gap: .7rem; }
-  .price-features li { font-size: .88rem; color: var(--text-muted); display: flex; gap: .6rem; }
-  .price-features li::before { content: '—'; color: var(--gold); flex-shrink: 0; }
+/* BUTTONS */
+.btn-primary,.btn-outline{
+  position:relative;overflow:hidden;
+  padding:.7rem 1.8rem;font-family:var(--sans);font-size:.82rem;
+  font-weight:500;letter-spacing:.11em;text-transform:uppercase;
+  cursor:none;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;
+  border-radius:var(--radius);transition:transform .2s var(--ease-out-expo);
+  border:none;
+}
+.btn-primary{background:var(--gold);color:#0d0d0d}
+.btn-outline{background:transparent;color:var(--gold);border:1px solid var(--gold)}
+.btn-primary::before,.btn-outline::before{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,.15);
+  transform:translateX(-110%) skewX(-15deg);
+  transition:transform .45s var(--ease-out-expo);
+}
+.btn-primary:hover::before,.btn-outline:hover::before{transform:translateX(110%) skewX(-15deg)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-outline:hover{transform:translateY(-2px);background:var(--gold-dim)}
 
-  .schedule-table { width: 100%; border-collapse: collapse; border: 1px solid var(--border); }
-  .schedule-table th { background: var(--surface); padding: 1rem 1.2rem; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); text-align: left; font-weight: 400; }
-  .schedule-table td { padding: 1rem 1.2rem; font-size: .88rem; border-top: 1px solid var(--border); color: var(--text-muted); }
-  .schedule-table tr:hover td { background: var(--surface); color: var(--text); }
-  .tag-group { display: inline-block; padding: .2rem .7rem; border: 1px solid var(--border); font-size: .72rem; border-radius: 100px; letter-spacing: .06em; }
-  .tag-online { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+.burger{display:none;flex-direction:column;gap:5px;cursor:none;background:none;border:none;padding:4px}
+.burger span{display:block;width:24px;height:1.5px;background:var(--text);transition:all .3s}
+.burger.open span:nth-child(1){transform:rotate(45deg) translate(4.5px,4.5px)}
+.burger.open span:nth-child(2){opacity:0;transform:translateX(-8px)}
+.burger.open span:nth-child(3){transform:rotate(-45deg) translate(4.5px,-4.5px)}
 
-  #reviews { background: var(--surface); }
-  .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 1.5rem; }
-  .review-card { background: var(--bg); border: 1px solid var(--border); padding: 2rem; border-radius: var(--radius); position: relative; }
-  .review-stars { color: var(--gold); font-size: .9rem; margin-bottom: 1rem; letter-spacing: .1em; }
-  .review-text { font-size: .9rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; font-style: italic; }
-  .review-author { font-size: .82rem; color: var(--text); font-weight: 500; }
-  .review-role { font-size: .75rem; color: var(--text-muted); }
-  .quote-mark { position: absolute; top: 1.2rem; right: 1.5rem; font-size: 4rem; color: var(--gold-dim); font-family: var(--serif); line-height: 1; pointer-events: none; }
+/* MOBILE NAV */
+.mobile-nav{
+  position:fixed;top:72px;left:0;right:0;
+  background:rgba(13,13,13,.97);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:2rem clamp(1.5rem,5vw,4rem);
+  display:flex;flex-direction:column;gap:1.5rem;
+  transform:translateY(-110%) scaleY(.95);transform-origin:top center;
+  transition:transform .4s var(--ease-out-expo),opacity .3s;
+  opacity:0;z-index:99;
+}
+.mobile-nav.open{transform:translateY(0) scaleY(1);opacity:1}
+.mobile-nav a{font-size:1.1rem;color:var(--text-muted);text-decoration:none;transition:color .2s}
+.mobile-nav a:hover{color:var(--gold)}
 
-  #form-section { background: var(--bg); position: relative; overflow: hidden; }
-  #form-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 100%,rgba(201,168,76,0.07) 0%,transparent 70%); pointer-events: none; }
-  .form-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
-  .form-points { display: flex; flex-direction: column; gap: 1rem; }
-  .form-point { display: flex; align-items: flex-start; gap: .8rem; font-size: .88rem; color: var(--text-muted); }
-  .form-point::before { content: '♙'; color: var(--gold); flex-shrink: 0; margin-top: .1em; }
-  .contact-form { background: var(--surface); border: 1px solid var(--border); padding: 3rem; border-radius: var(--radius); }
-  .form-title { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; margin-bottom: 2rem; }
-  .form-group { margin-bottom: 1.2rem; }
-  .form-group label { display: block; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: .5rem; }
-  .form-group input, .form-group select { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: .9rem 1rem; font-family: var(--sans); font-size: .95rem; border-radius: var(--radius); outline: none; transition: border-color .2s; }
-  .form-group input:focus, .form-group select:focus { border-color: var(--gold); }
-  .form-group input::placeholder { color: var(--text-muted); }
-  .form-group select option { background: var(--surface); }
-  .form-error { font-size: .75rem; color: #e07070; margin-top: .3rem; display: none; }
-  .form-error.show { display: block; }
-  .form-submit { width: 100%; margin-top: 1.5rem; padding: 1rem; font-size: .9rem; }
-  .form-note { font-size: .75rem; color: var(--text-muted); margin-top: 1rem; text-align: center; }
-  .form-success { display: none; text-align: center; padding: 2rem; }
-  .form-success .success-icon { font-size: 3rem; margin-bottom: 1rem; }
-  .form-success h3 { font-family: var(--serif); font-size: 1.5rem; margin-bottom: .5rem; }
-  .form-success p { color: var(--text-muted); font-size: .88rem; }
+/* ════════════════════════════════════════
+   HERO
+════════════════════════════════════════ */
+#hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding:100px clamp(1.5rem,5vw,4rem) 4rem;
+  position:relative;overflow:hidden;z-index:1;
+}
+/* animated gradient orb */
+.hero-orb{
+  position:absolute;width:700px;height:700px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,168,76,.12) 0%,transparent 70%);
+  right:-200px;top:50%;transform:translateY(-50%);
+  animation:orbFloat 8s ease-in-out infinite;pointer-events:none;
+  filter:blur(40px);
+}
+@keyframes orbFloat{
+  0%,100%{transform:translateY(-50%) scale(1)}
+  50%{transform:translateY(-55%) scale(1.05)}
+}
+.hero-board{
+  position:absolute;right:-60px;top:50%;transform:translateY(-50%);
+  width:min(55vw,660px);opacity:.14;pointer-events:none;
+  font-size:clamp(55px,7.5vw,112px);line-height:1;
+  display:grid;grid-template-columns:repeat(8,1fr);filter:blur(.3px);
+  animation:boardDrift 12s ease-in-out infinite;
+}
+@keyframes boardDrift{
+  0%,100%{transform:translateY(-50%) rotate(0deg)}
+  33%{transform:translateY(-52%) rotate(.4deg)}
+  66%{transform:translateY(-48%) rotate(-.3deg)}
+}
+.hero-board .sq{aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.hero-board .sq.d{background:rgba(201,168,76,.1)}
+.hero-content{position:relative;z-index:2;max-width:640px}
 
-  #contacts { background: var(--surface); }
-  .contacts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
-  .contact-item { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 2rem; }
-  .contact-label { font-size: .72rem; letter-spacing: .15em; text-transform: uppercase; color: var(--gold); }
-  .contact-value { font-size: 1rem; color: var(--text); }
-  .contact-value a { color: var(--text); text-decoration: none; transition: color .2s; }
-  .contact-value a:hover { color: var(--gold); }
-  .map-placeholder { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); height: 280px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: .88rem; position: relative; overflow: hidden; }
-  .map-placeholder::before { content: '♟'; position: absolute; font-size: 10rem; opacity: .04; color: var(--gold); }
+.hero-tag{
+  display:inline-flex;align-items:center;gap:.6rem;
+  border:1px solid var(--border);padding:.35rem 1rem;border-radius:100px;
+  font-size:.75rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);
+  margin-bottom:2rem;opacity:0;animation:fadeUp .6s .1s var(--ease-out-expo) forwards;
+  background:rgba(201,168,76,.04);backdrop-filter:blur(8px);
+}
+.hero-tag::before{content:'♟';animation:pieceBob 2s ease-in-out infinite}
+@keyframes pieceBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 
-  footer { border-top: 1px solid var(--border); padding: 2.5rem clamp(1.5rem,5vw,4rem); display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; justify-content: space-between; }
-  .footer-copy { font-size: .8rem; color: var(--text-muted); }
-  .footer-nav { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-  .footer-nav a { font-size: .8rem; color: var(--text-muted); text-decoration: none; transition: color .2s; }
-  .footer-nav a:hover { color: var(--gold); }
+h1{
+  font-family:var(--serif);font-size:clamp(3rem,6.5vw,6rem);font-weight:700;
+  line-height:1.02;letter-spacing:-.02em;margin-bottom:1.5rem;
+  opacity:0;animation:fadeUp .8s .25s var(--ease-out-expo) forwards;
+}
+h1 em{
+  color:var(--gold);font-style:normal;
+  background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold));
+  background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;animation:shimmerText 4s linear infinite;
+}
+@keyframes shimmerText{0%{background-position:200% center}100%{background-position:-200% center}}
 
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity .3s; }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 3rem; max-width: 480px; width: 100%; position: relative; transform: translateY(20px); transition: transform .3s; max-height: 90vh; overflow-y: auto; }
-  .modal-overlay.open .modal { transform: translateY(0); }
-  .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: color .2s; }
-  .modal-close:hover { color: var(--text); }
+.hero-sub{
+  font-size:1.05rem;color:var(--text-muted);max-width:480px;
+  margin-bottom:2.5rem;opacity:0;animation:fadeUp .8s .4s var(--ease-out-expo) forwards;
+  line-height:1.75;
+}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;opacity:0;animation:fadeUp .8s .55s var(--ease-out-expo) forwards}
+.hero-stats{
+  display:flex;gap:2.5rem;margin-top:4rem;padding-top:2rem;
+  border-top:1px solid var(--border);
+  opacity:0;animation:fadeUp .8s .7s var(--ease-out-expo) forwards;flex-wrap:wrap;
+}
+.stat-num{
+  font-family:var(--serif);font-size:2.2rem;font-weight:600;color:var(--gold);
+  line-height:1;
+}
+.stat-label{font-size:.73rem;color:var(--text-muted);letter-spacing:.07em;text-transform:uppercase;margin-top:.2rem}
 
-  .mobile-nav { position: fixed; top: 72px; left: 0; right: 0; background: rgba(13,13,13,0.98); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 2rem clamp(1.5rem,5vw,4rem); display: flex; flex-direction: column; gap: 1.5rem; transform: translateY(-100%); transition: transform .3s ease; z-index: 99; }
-  .mobile-nav.open { transform: translateY(0); }
-  .mobile-nav a { font-size: 1.1rem; color: var(--text-muted); text-decoration: none; }
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
 
-  .reveal { opacity: 0; transform: translateY(30px); transition: opacity .6s ease, transform .6s ease; }
-  .reveal.visible { opacity: 1; transform: none; }
+/* scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;
+  color:var(--text-muted);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;
+  opacity:0;animation:fadeUp .8s 1.2s var(--ease-out-expo) forwards;
+}
+.scroll-hint-line{
+  width:1px;height:40px;background:linear-gradient(var(--gold),transparent);
+  animation:scrollLine 2s ease-in-out infinite;
+}
+@keyframes scrollLine{0%,100%{transform:scaleY(1);opacity:1}50%{transform:scaleY(.5);opacity:.4}}
 
-  @media (max-width: 900px) {
-    nav a { display: none; }
-    .burger { display: flex; }
-    .form-wrap { grid-template-columns: 1fr; gap: 2.5rem; }
-    .contacts-grid { grid-template-columns: 1fr; gap: 2rem; }
-    .hero-board { display: none; }
-  }
-  @media (max-width: 600px) {
-    .prices-grid { grid-template-columns: 1fr; }
-    .contact-form { padding: 2rem 1.5rem; }
-    .modal { padding: 2rem 1.5rem; }
-  }
+/* ════════════════════════════════════════
+   SECTIONS COMMON
+════════════════════════════════════════ */
+section{padding:clamp(5rem,9vw,8rem) clamp(1.5rem,5vw,4rem);position:relative;z-index:1}
+.section-label{font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
+.section-title{font-family:var(--serif);font-size:clamp(2.2rem,4.5vw,3.5rem);font-weight:700;line-height:1.08;margin-bottom:1rem}
+.section-sub{color:var(--text-muted);max-width:540px;margin-bottom:3.5rem;line-height:1.75}
+
+/* stagger children */
+.stagger > *{
+  opacity:0;transform:translateY(24px);
+  transition:opacity .65s var(--ease-out-expo),transform .65s var(--ease-out-expo);
+}
+.stagger.visible > *:nth-child(1){opacity:1;transform:none;transition-delay:.05s}
+.stagger.visible > *:nth-child(2){opacity:1;transform:none;transition-delay:.12s}
+.stagger.visible > *:nth-child(3){opacity:1;transform:none;transition-delay:.19s}
+.stagger.visible > *:nth-child(4){opacity:1;transform:none;transition-delay:.26s}
+.stagger.visible > *:nth-child(5){opacity:1;transform:none;transition-delay:.33s}
+.stagger.visible > *:nth-child(6){opacity:1;transform:none;transition-delay:.40s}
+
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s var(--ease-out-expo),transform .7s var(--ease-out-expo)}
+.reveal.visible{opacity:1;transform:none}
+
+/* ════════════════════════════════════════
+   ABOUT / ADVANTAGES
+════════════════════════════════════════ */
+#about{background:var(--surface)}
+.advantages-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:1.5px;background:var(--border);border:1px solid var(--border);margin-top:1rem;
+}
+.adv-card{
+  background:var(--surface);padding:2.5rem 2rem;
+  transition:background .3s,transform .3s var(--ease-out-expo);
+  position:relative;overflow:hidden;
+}
+.adv-card::before{
+  content:'';position:absolute;bottom:0;left:0;width:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-light));
+  transition:width .45s var(--ease-out-expo);
+}
+.adv-card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(201,168,76,.06) 0%,transparent 60%);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.adv-card:hover{background:var(--surface2);transform:translateY(-3px)}
+.adv-card:hover::before{width:100%}
+.adv-card:hover::after{opacity:1}
+.adv-icon{
+  font-size:2.2rem;margin-bottom:1.4rem;display:block;
+  filter:drop-shadow(0 0 12px rgba(201,168,76,.3));
+  transition:transform .3s var(--ease-out-expo);
+}
+.adv-card:hover .adv-icon{transform:scale(1.15) rotate(-5deg)}
+.adv-title{font-family:var(--serif);font-size:1.3rem;font-weight:600;margin-bottom:.6rem}
+.adv-desc{font-size:.88rem;color:var(--text-muted);line-height:1.75}
+
+/* ════════════════════════════════════════
+   PROGRAMS
+════════════════════════════════════════ */
+.prog-tabs{
+  display:flex;border:1px solid var(--border);
+  width:fit-content;margin-bottom:3rem;
+  border-radius:var(--radius);overflow:hidden;flex-wrap:wrap;
+}
+.prog-tab{
+  padding:.65rem 1.6rem;font-size:.82rem;font-weight:500;
+  letter-spacing:.07em;text-transform:uppercase;
+  cursor:none;background:transparent;color:var(--text-muted);
+  border:none;transition:all .3s var(--ease-out-expo);font-family:var(--sans);
+  position:relative;
+}
+.prog-tab.active{background:var(--gold);color:#0d0d0d}
+.prog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
+.prog-card{
+  background:var(--surface);border:1px solid var(--border);
+  padding:2.5rem 2rem;border-radius:var(--radius);
+  transition:border-color .3s,transform .3s var(--ease-out-expo),box-shadow .3s;
+  position:relative;overflow:hidden;
+}
+.prog-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  transform:translateX(-100%);transition:transform .5s var(--ease-out-expo);
+}
+.prog-card:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.prog-card:hover::after{transform:translateX(0)}
+.prog-badge{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .8rem;border:1px solid var(--border);color:var(--text-muted);border-radius:100px;margin-bottom:1.5rem}
+.prog-name{font-family:var(--serif);font-size:1.5rem;font-weight:600;margin-bottom:.8rem}
+.prog-desc{font-size:.88rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75}
+.prog-meta{display:flex;flex-direction:column;gap:.5rem}
+.prog-meta span{font-size:.8rem;color:var(--text-muted)}
+.prog-meta span strong{color:var(--text);font-weight:400}
+.prog-panel{display:none;animation:panelIn .4s var(--ease-out-expo)}
+.prog-panel.active{display:block}
+@keyframes panelIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ════════════════════════════════════════
+   PRICES
+════════════════════════════════════════ */
+#prices{background:var(--surface)}
+.prices-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;align-items:start}
+.price-card{
+  background:var(--bg);border:1px solid var(--border);
+  padding:2.5rem 2rem;border-radius:var(--radius);
+  position:relative;transition:all .35s var(--ease-out-expo);
+  overflow:hidden;
+}
+.price-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,rgba(201,168,76,.07) 0%,transparent 60%);
+  opacity:0;transition:opacity .3s;
+}
+.price-card:hover{border-color:var(--gold);transform:translateY(-6px);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.price-card:hover::before{opacity:1}
+.price-card.popular{background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.05));border-color:var(--gold)}
+.popular-badge{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(90deg,var(--gold),var(--gold-light));
+  color:#0d0d0d;font-size:.68rem;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;padding:.2rem 1rem;border-radius:100px;white-space:nowrap;
+}
+.price-name{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.2rem}
+.price-amount{font-family:var(--serif);font-size:3rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:.3rem}
+.price-period{font-size:.8rem;color:var(--text-muted);margin-bottom:1.8rem}
+.price-features{list-style:none;margin-bottom:2rem;display:flex;flex-direction:column;gap:.75rem}
+.price-features li{font-size:.88rem;color:var(--text-muted);display:flex;gap:.6rem;align-items:flex-start}
+.price-features li::before{content:'—';color:var(--gold);flex-shrink:0;margin-top:.05em}
+
+/* ════════════════════════════════════════
+   SCHEDULE
+════════════════════════════════════════ */
+.schedule-table{width:100%;border-collapse:collapse;border:1px solid var(--border)}
+.schedule-table th{background:var(--surface);padding:1rem 1.2rem;font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);text-align:left;font-weight:400}
+.schedule-table td{padding:1rem 1.2rem;font-size:.88rem;border-top:1px solid var(--border);color:var(--text-muted);transition:color .2s,background .2s}
+.schedule-table tr:hover td{background:var(--surface);color:var(--text)}
+.tag-group{display:inline-block;padding:.2rem .7rem;border:1px solid var(--border);font-size:.72rem;border-radius:100px;letter-spacing:.06em}
+.tag-online{border-color:rgba(201,168,76,.4);color:var(--gold)}
+
+/* ════════════════════════════════════════
+   REVIEWS
+════════════════════════════════════════ */
+#reviews{background:var(--surface)}
+.reviews-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
+.review-card{
+  background:var(--bg);border:1px solid var(--border);
+  padding:2rem;border-radius:var(--radius);
+  position:relative;overflow:hidden;
+  transition:border-color .3s,transform .3s var(--ease-out-expo),box-shadow .3s;
+}
+.review-card:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.review-stars{color:var(--gold);font-size:.9rem;margin-bottom:1rem;letter-spacing:.1em}
+.review-text{font-size:.9rem;color:var(--text-muted);line-height:1.8;margin-bottom:1.5rem;font-style:italic}
+.review-author{font-size:.82rem;color:var(--text);font-weight:500}
+.review-role{font-size:.75rem;color:var(--text-muted)}
+.quote-mark{position:absolute;top:1.2rem;right:1.5rem;font-size:5rem;color:rgba(201,168,76,.08);font-family:var(--serif);line-height:1;pointer-events:none;font-style:normal}
+
+/* ════════════════════════════════════════
+   FORM
+════════════════════════════════════════ */
+#form-section{background:var(--bg);position:relative;overflow:hidden}
+#form-section::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 70% at 50% 110%,rgba(201,168,76,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.form-wrap{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.form-points{display:flex;flex-direction:column;gap:1rem}
+.form-point{display:flex;align-items:flex-start;gap:.8rem;font-size:.9rem;color:var(--text-muted);line-height:1.6}
+.form-point::before{content:'♙';color:var(--gold);flex-shrink:0;margin-top:.1em;transition:transform .3s}
+.form-point:hover::before{transform:translateY(-3px)}
+.contact-form{background:var(--surface);border:1px solid var(--border);padding:3rem;border-radius:var(--radius);position:relative;overflow:hidden}
+.contact-form::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.form-title{font-family:var(--serif);font-size:1.7rem;font-weight:600;margin-bottom:2rem}
+.form-group{margin-bottom:1.2rem;position:relative}
+.form-group label{display:block;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.5rem;transition:color .2s}
+.form-group:focus-within label{color:var(--gold)}
+.form-group input,.form-group select{
+  width:100%;background:rgba(13,13,13,.8);border:1px solid var(--border);
+  color:var(--text);padding:.9rem 1rem;font-family:var(--sans);font-size:.95rem;
+  border-radius:var(--radius);outline:none;transition:border-color .25s,box-shadow .25s;
+}
+.form-group input:focus,.form-group select:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(201,168,76,.1);
+}
+.form-group input::placeholder{color:var(--text-muted)}
+.form-group select option{background:var(--surface)}
+.form-error{font-size:.74rem;color:#e07070;margin-top:.3rem;display:none}
+.form-error.show{display:block;animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.form-submit{width:100%;margin-top:1.5rem;padding:1rem;font-size:.9rem}
+.form-note{font-size:.73rem;color:var(--text-muted);margin-top:1rem;text-align:center}
+.form-success{display:none;text-align:center;padding:2.5rem 2rem}
+.form-success .success-icon{font-size:3.5rem;margin-bottom:1rem;animation:successPop .5s var(--ease-out-expo)}
+@keyframes successPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.form-success h3{font-family:var(--serif);font-size:1.6rem;margin-bottom:.6rem}
+.form-success p{color:var(--text-muted);font-size:.9rem}
+
+/* ════════════════════════════════════════
+   CONTACTS
+════════════════════════════════════════ */
+#contacts{background:var(--surface)}
+.contacts-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start}
+.contact-item{display:flex;flex-direction:column;gap:.3rem;margin-bottom:2rem}
+.contact-label{font-size:.7rem;letter-spacing:.17em;text-transform:uppercase;color:var(--gold)}
+.contact-value{font-size:1rem;color:var(--text);line-height:1.7}
+.contact-value a{color:var(--text);text-decoration:none;transition:color .2s}
+.contact-value a:hover{color:var(--gold)}
+.map-placeholder{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);height:290px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.88rem;position:relative;overflow:hidden}
+.map-placeholder::before{content:'♟';position:absolute;font-size:10rem;opacity:.04;color:var(--gold)}
+
+/* ════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════ */
+footer{border-top:1px solid var(--border);padding:2.5rem clamp(1.5rem,5vw,4rem);display:flex;flex-wrap:wrap;gap:1.5rem;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.footer-copy{font-size:.78rem;color:var(--text-muted)}
+.footer-nav{display:flex;gap:1.5rem;flex-wrap:wrap}
+.footer-nav a{font-size:.78rem;color:var(--text-muted);text-decoration:none;transition:color .2s}
+.footer-nav a:hover{color:var(--gold)}
+
+/* ════════════════════════════════════════
+   MODAL
+════════════════════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0);backdrop-filter:blur(0px);
+  z-index:200;display:flex;align-items:center;justify-content:center;padding:1.5rem;
+  pointer-events:none;transition:background .35s,backdrop-filter .35s;
+}
+.modal-overlay.open{background:rgba(0,0,0,.8);backdrop-filter:blur(12px);pointer-events:all}
+.modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:3rem;max-width:480px;width:100%;
+  position:relative;
+  transform:translateY(30px) scale(.96);opacity:0;
+  transition:transform .45s var(--ease-out-expo),opacity .35s;
+  max-height:92vh;overflow-y:auto;
+}
+.modal-overlay.open .modal{transform:translateY(0) scale(1);opacity:1}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:none;transition:color .2s,transform .2s}
+.modal-close:hover{color:var(--text);transform:rotate(90deg)}
+
+/* ════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════ */
+@media(max-width:960px){
+  nav a{display:none}
+  .burger{display:flex}
+  .form-wrap{grid-template-columns:1fr;gap:2.5rem}
+  .contacts-grid{grid-template-columns:1fr;gap:2rem}
+  .hero-board{display:none}
+}
+@media(max-width:600px){
+  .prices-grid{grid-template-columns:1fr}
+  .contact-form,.modal{padding:2rem 1.5rem}
+  .prog-tabs{width:100%}
+  .prog-tab{flex:1;text-align:center}
+  .hero-stats{gap:1.5rem}
+}
 </style>
 </head>
 <body>
 
-<header>
+<!-- PAGE LOADER -->
+<div id="loader">
+  <div class="loader-logo">Combination<span>Chess</span></div>
+  <div class="loader-bar"></div>
+</div>
+
+<!-- CUSTOM CURSOR -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- ═══ HEADER ═══ -->
+<header id="header">
   <a href="#" class="logo">Combination<span>Chess</span></a>
   <nav>
     <a href="#about">Про школу</a>
@@ -242,7 +548,7 @@
     <a href="#contacts">Контакти</a>
     <button class="btn-primary" onclick="openModal()">Записатись</button>
   </nav>
-  <button class="burger" onclick="toggleMenu()" aria-label="Меню">
+  <button class="burger" id="burgerBtn" onclick="toggleMenu()" aria-label="Меню">
     <span></span><span></span><span></span>
   </button>
 </header>
@@ -253,81 +559,90 @@
   <a href="#prices" onclick="closeMenu()">Ціни</a>
   <a href="#schedule" onclick="closeMenu()">Розклад</a>
   <a href="#contacts" onclick="closeMenu()">Контакти</a>
-  <button class="btn-primary" onclick="openModal();closeMenu()">Записатись</button>
+  <button class="btn-primary" style="width:fit-content" onclick="openModal();closeMenu()">Записатись</button>
 </div>
 
+<!-- ═══ HERO ═══ -->
 <section id="hero">
+  <div class="hero-orb"></div>
   <div class="hero-board" id="heroBoard" aria-hidden="true"></div>
   <div class="hero-content">
-    <div class="hero-tag">Шахова школа</div>
-    <h1>Думати на <em>декілька ходів</em> вперед</h1>
-    <p class="hero-sub">Навчання шахів для дітей від 5 років та дорослих. Онлайн та офлайн. Індивідуальний підхід, досвідчені тренери, реальний результат.</p>
+    <div class="hero-tag">Шахова школа · Київ</div>
+    <h1>Думати на <em>кілька ходів</em> вперед</h1>
+    <p class="hero-sub">Навчання шахів для дітей від 5 років та дорослих. Онлайн і офлайн. Індивідуальний підхід, досвідчені тренери, реальний результат.</p>
     <div class="hero-btns">
-      <button class="btn-primary" onclick="openModal()">Записатись на пробне заняття</button>
-      <a href="#programs" class="btn-outline">Програми</a>
+      <button class="btn-primary mag" onclick="openModal()">Записатись на пробне заняття</button>
+      <a href="#programs" class="btn-outline mag">Програми</a>
     </div>
     <div class="hero-stats">
-      <div><div class="stat-num">8+</div><div class="stat-label">Років досвіду</div></div>
-      <div><div class="stat-num">500+</div><div class="stat-label">Учнів</div></div>
-      <div><div class="stat-num">12</div><div class="stat-label">Тренерів</div></div>
-      <div><div class="stat-num">100+</div><div class="stat-label">Турнірів</div></div>
+      <div><div class="stat-num" data-count="8" data-suffix="+">0+</div><div class="stat-label">Років досвіду</div></div>
+      <div><div class="stat-num" data-count="500" data-suffix="+">0+</div><div class="stat-label">Учнів</div></div>
+      <div><div class="stat-num" data-count="12">0</div><div class="stat-label">Тренерів</div></div>
+      <div><div class="stat-num" data-count="100" data-suffix="+">0+</div><div class="stat-label">Турнірів</div></div>
     </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-hint-line"></div>
   </div>
 </section>
 
+<!-- ═══ ABOUT ═══ -->
 <section id="about">
   <div class="reveal">
     <div class="section-label">Наші переваги</div>
     <h2 class="section-title">Чому обирають <em style="color:var(--gold);font-style:normal">CombinationChess</em></h2>
     <p class="section-sub">Ми створюємо середовище, де кожен — від новачка до чемпіона — розвивається у своєму темпі.</p>
   </div>
-  <div class="advantages-grid reveal">
+  <div class="advantages-grid stagger">
     <div class="adv-card">
-      <div class="adv-icon">♔</div>
+      <span class="adv-icon">♔</span>
       <div class="adv-title">Досвідчені тренери</div>
       <div class="adv-desc">Команда сертифікованих фахівців з досвідом від 5 років. Серед нас — майстри та кандидати в майстри спорту.</div>
     </div>
     <div class="adv-card">
-      <div class="adv-icon">♙</div>
+      <span class="adv-icon">♙</span>
       <div class="adv-title">Індивідуальний підхід</div>
-      <div class="adv-desc">Програма підбирається під рівень та цілі кожного учня. Ми не женемо потік — ми будуємо навичку.</div>
+      <div class="adv-desc">Програма підбирається під рівень і цілі кожного учня. Ми не гонимо потік — ми будуємо навичку.</div>
     </div>
     <div class="adv-card">
-      <div class="adv-icon">♜</div>
-      <div class="adv-title">Онлайн та офлайн</div>
-      <div class="adv-desc">Займайтесь з будь-якої точки світу або відвідуйте очні заняття. Формат обираєте ви.</div>
+      <span class="adv-icon">♜</span>
+      <div class="adv-title">Онлайн і офлайн</div>
+      <div class="adv-desc">Займайтесь з будь-якої точки світу або відвідуйте очні заняття у нас у Києві. Формат обираєте ви.</div>
     </div>
     <div class="adv-card">
-      <div class="adv-icon">♞</div>
+      <span class="adv-icon">♞</span>
       <div class="adv-title">Розвиток логіки</div>
-      <div class="adv-desc">Шахи розвивають концентрацію, стратегічне мислення та посидючість — навички, важливі в будь-якій сфері.</div>
+      <div class="adv-desc">Шахи розвивають концентрацію, стратегічне мислення й посидючість — навички, важливі в будь-якій сфері.</div>
     </div>
     <div class="adv-card">
-      <div class="adv-icon">♛</div>
-      <div class="adv-title">Турніри та рейтинг</div>
-      <div class="adv-desc">Регулярні змагання для учнів будь-якого рівня. Отримуйте офіційний рейтинг ФІДЕ.</div>
+      <span class="adv-icon">♛</span>
+      <div class="adv-title">Турніри і рейтинг</div>
+      <div class="adv-desc">Регулярні змагання для учнів будь-якого рівня. Отримайте офіційний рейтинг ФІДЕ.</div>
     </div>
     <div class="adv-card">
-      <div class="adv-icon">♝</div>
+      <span class="adv-icon">♝</span>
       <div class="adv-title">Перше заняття — безкоштовно</div>
-      <div class="adv-desc">Приходьте без зобов'язань. Познайомтесь з тренером та почніть грати у перший же день.</div>
+      <div class="adv-desc">Приходьте без зобов'язань. Познайомтесь із тренером і почніть грати вже в перший день.</div>
     </div>
   </div>
 </section>
 
+<!-- ═══ PROGRAMS ═══ -->
 <section id="programs">
   <div class="reveal">
     <div class="section-label">Навчання</div>
     <h2 class="section-title">Програми</h2>
-    <p class="section-sub">Три напрямки — для будь-якого віку та рівня підготовки.</p>
+    <p class="section-sub">Три напрями — для будь-якого віку та рівня підготовки.</p>
   </div>
   <div class="prog-tabs reveal">
-    <button class="prog-tab active" onclick="switchTab('children',this)">Діти</button>
-    <button class="prog-tab" onclick="switchTab('adults',this)">Дорослі</button>
-    <button class="prog-tab" onclick="switchTab('individual',this)">Індивідуально</button>
+    <button class="prog-tab active mag" onclick="switchTab('children',this)">Діти</button>
+    <button class="prog-tab mag" onclick="switchTab('adults',this)">Дорослі</button>
+    <button class="prog-tab mag" onclick="switchTab('individual',this)">Індивідуально</button>
   </div>
+
   <div class="prog-panel active" id="tab-children">
-    <div class="prog-grid reveal">
+    <div class="prog-grid stagger">
       <div class="prog-card">
         <div class="prog-badge">5–8 років</div>
         <div class="prog-name">Юний шахіст</div>
@@ -335,17 +650,17 @@
         <div class="prog-meta">
           <span><strong>Тривалість:</strong> 45 хвилин</span>
           <span><strong>Формат:</strong> Група до 6 / Онлайн</span>
-          <span><strong>Періодичність:</strong> 2 рази на тиждень</span>
+          <span><strong>Частота:</strong> 2 рази на тиждень</span>
         </div>
       </div>
       <div class="prog-card">
         <div class="prog-badge">8–14 років</div>
         <div class="prog-name">Шаховий клуб</div>
-        <div class="prog-desc">Поглиблене вивчення дебютів, ендшпілів та стратегії. Підготовка до шкільних та міських змагань.</div>
+        <div class="prog-desc">Поглиблене вивчення дебютів, ендшпілів і стратегії. Підготовка до шкільних та міських змагань.</div>
         <div class="prog-meta">
           <span><strong>Тривалість:</strong> 60 хвилин</span>
           <span><strong>Формат:</strong> Група до 8 / Онлайн</span>
-          <span><strong>Періодичність:</strong> 2–3 рази на тиждень</span>
+          <span><strong>Частота:</strong> 2–3 рази на тиждень</span>
         </div>
       </div>
       <div class="prog-card">
@@ -355,21 +670,22 @@
         <div class="prog-meta">
           <span><strong>Тривалість:</strong> 90 хвилин</span>
           <span><strong>Формат:</strong> Міні-група до 4 / Онлайн</span>
-          <span><strong>Періодичність:</strong> 3 рази на тиждень</span>
+          <span><strong>Частота:</strong> 3 рази на тиждень</span>
         </div>
       </div>
     </div>
   </div>
+
   <div class="prog-panel" id="tab-adults">
-    <div class="prog-grid reveal">
+    <div class="prog-grid stagger">
       <div class="prog-card">
         <div class="prog-badge">Початківець</div>
         <div class="prog-name">Шахи з нуля</div>
         <div class="prog-desc">Для тих, хто ніколи не грав або забув правила. За 2 місяці ви впевнено сядете за дошку.</div>
         <div class="prog-meta">
           <span><strong>Тривалість:</strong> 60 хвилин</span>
-          <span><strong>Формат:</strong> Группа / Онлайн</span>
-          <span><strong>Періодичність:</strong> 2 рази на тиждень</span>
+          <span><strong>Формат:</strong> Група / Онлайн</span>
+          <span><strong>Частота:</strong> 2 рази на тиждень</span>
         </div>
       </div>
       <div class="prog-card">
@@ -379,21 +695,22 @@
         <div class="prog-meta">
           <span><strong>Тривалість:</strong> 75 хвилин</span>
           <span><strong>Формат:</strong> Онлайн / Офлайн</span>
-          <span><strong>Періодичність:</strong> 2 рази на тиждень</span>
+          <span><strong>Частота:</strong> 2 рази на тиждень</span>
         </div>
       </div>
     </div>
   </div>
+
   <div class="prog-panel" id="tab-individual">
-    <div class="prog-grid reveal">
+    <div class="prog-grid stagger">
       <div class="prog-card">
         <div class="prog-badge">Будь-який рівень</div>
         <div class="prog-name">Персональні заняття</div>
-        <div class="prog-desc">Один на один з тренером. Максимальна ефективність: тільки ваші цілі, тільки ваш темп.</div>
+        <div class="prog-desc">Один на один із тренером. Максимальна ефективність: тільки ваші цілі, тільки ваш темп.</div>
         <div class="prog-meta">
           <span><strong>Тривалість:</strong> 60–90 хвилин</span>
           <span><strong>Формат:</strong> Онлайн / Офлайн</span>
-          <span><strong>Періодичність:</strong> За домовленістю</span>
+          <span><strong>Частота:</strong> За домовленістю</span>
         </div>
       </div>
       <div class="prog-card">
@@ -403,23 +720,25 @@
         <div class="prog-meta">
           <span><strong>Тривалість:</strong> 90 хвилин</span>
           <span><strong>Формат:</strong> Онлайн / Офлайн</span>
-          <span><strong>Періодичність:</strong> За планом підготовки</span>
+          <span><strong>Частота:</strong> За планом підготовки</span>
         </div>
       </div>
     </div>
   </div>
+
   <div style="margin-top:3rem;text-align:center" class="reveal">
-    <button class="btn-primary" onclick="openModal()">Записатись на програму →</button>
+    <button class="btn-primary mag" onclick="openModal()">Записатись на програму →</button>
   </div>
 </section>
 
+<!-- ═══ PRICES ═══ -->
 <section id="prices">
   <div class="reveal">
     <div class="section-label">Вартість</div>
     <h2 class="section-title">Тарифи</h2>
     <p class="section-sub">Прозорі ціни. Без прихованих платежів.</p>
   </div>
-  <div class="prices-grid reveal">
+  <div class="prices-grid stagger">
     <div class="price-card">
       <div class="price-name">Старт</div>
       <div class="price-amount">1 200 ₴</div>
@@ -430,7 +749,7 @@
         <li>Онлайн-платформа</li>
         <li>Домашні завдання</li>
       </ul>
-      <button class="btn-outline" style="width:100%" onclick="openModal()">Записатись</button>
+      <button class="btn-outline mag" style="width:100%" onclick="openModal()">Записатись</button>
     </div>
     <div class="price-card popular">
       <div class="popular-badge">Популярний</div>
@@ -444,7 +763,7 @@
         <li>Розбір партій</li>
         <li>Участь у турнірах</li>
       </ul>
-      <button class="btn-primary" style="width:100%" onclick="openModal()">Записатись</button>
+      <button class="btn-primary mag" style="width:100%" onclick="openModal()">Записатись</button>
     </div>
     <div class="price-card">
       <div class="price-name">Профі</div>
@@ -457,23 +776,24 @@
         <li>ШІ-аналіз партій</li>
         <li>Пріоритетна підтримка</li>
       </ul>
-      <button class="btn-outline" style="width:100%" onclick="openModal()">Записатись</button>
+      <button class="btn-outline mag" style="width:100%" onclick="openModal()">Записатись</button>
     </div>
     <div class="price-card">
       <div class="price-name">Корпоратив</div>
       <div class="price-amount">За запитом</div>
-      <div class="price-period">для команд та компаній</div>
+      <div class="price-period">для команд і компаній</div>
       <ul class="price-features">
         <li>Індивідуальний план</li>
         <li>Тімбілдинг на шахах</li>
-        <li>Виїзд тренера до офісу</li>
+        <li>Виїзд тренера в офіс</li>
         <li>Корпоративний турнір</li>
       </ul>
-      <button class="btn-outline" style="width:100%" onclick="openModal()">Запросити</button>
+      <button class="btn-outline mag" style="width:100%" onclick="openModal()">Запитати</button>
     </div>
   </div>
 </section>
 
+<!-- ═══ SCHEDULE ═══ -->
 <section id="schedule">
   <div class="reveal">
     <div class="section-label">Розклад</div>
@@ -484,12 +804,7 @@
     <table class="schedule-table">
       <thead>
         <tr>
-          <th>Група</th>
-          <th>Пн</th>
-          <th>Ср</th>
-          <th>Пт</th>
-          <th>Формат</th>
-          <th></th>
+          <th>Група</th><th>Пн</th><th>Ср</th><th>Пт</th><th>Формат</th><th></th>
         </tr>
       </thead>
       <tbody>
@@ -497,43 +812,44 @@
           <td>Юний шахіст (5–8 років)</td>
           <td>15:00</td><td>15:00</td><td>—</td>
           <td><span class="tag-group">Офлайн</span></td>
-          <td><button class="btn-primary" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
+          <td><button class="btn-primary mag" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
         </tr>
         <tr>
           <td>Шаховий клуб (8–14 років)</td>
           <td>16:30</td><td>16:30</td><td>16:30</td>
           <td><span class="tag-group">Офлайн</span></td>
-          <td><button class="btn-primary" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
+          <td><button class="btn-primary mag" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
         </tr>
         <tr>
           <td>Професійний старт (14+)</td>
           <td>18:00</td><td>18:00</td><td>18:00</td>
           <td><span class="tag-group">Офлайн</span></td>
-          <td><button class="btn-primary" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
+          <td><button class="btn-primary mag" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
         </tr>
         <tr>
           <td>Дорослі — початківці</td>
           <td>—</td><td>19:30</td><td>19:30</td>
           <td><span class="tag-group tag-online">Онлайн</span></td>
-          <td><button class="btn-primary" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
+          <td><button class="btn-primary mag" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
         </tr>
         <tr>
           <td>Дорослі — підвищення рівня</td>
           <td>19:00</td><td>—</td><td>19:00</td>
           <td><span class="tag-group tag-online">Онлайн</span></td>
-          <td><button class="btn-primary" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
+          <td><button class="btn-primary mag" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
         </tr>
       </tbody>
     </table>
   </div>
 </section>
 
+<!-- ═══ REVIEWS ═══ -->
 <section id="reviews">
   <div class="reveal">
     <div class="section-label">Відгуки</div>
     <h2 class="section-title">Говорять учні</h2>
   </div>
-  <div class="reviews-grid reveal">
+  <div class="reviews-grid stagger">
     <div class="review-card">
       <div class="quote-mark">"</div>
       <div class="review-stars">★★★★★</div>
@@ -558,6 +874,7 @@
   </div>
 </section>
 
+<!-- ═══ FORM ═══ -->
 <section id="form-section">
   <div class="form-wrap">
     <div class="form-left reveal">
@@ -600,7 +917,7 @@
             <option>Індивідуальні заняття</option>
           </select>
         </div>
-        <button class="btn-primary form-submit" onclick="submitForm()">Надіслати заявку →</button>
+        <button class="btn-primary form-submit mag" onclick="submitForm()">Надіслати заявку →</button>
         <p class="form-note">Натискаючи кнопку, ви погоджуєтесь з політикою конфіденційності</p>
       </div>
       <div class="form-success" id="formSuccess">
@@ -612,6 +929,7 @@
   </div>
 </section>
 
+<!-- ═══ CONTACTS ═══ -->
 <section id="contacts">
   <div class="contacts-grid">
     <div class="reveal">
@@ -635,29 +953,24 @@
           <div class="contact-value">вул. Хрещатик, 22, 4-й поверх<br>Київ, 01001</div>
         </div>
         <div class="contact-item">
-          
-        <div class="contact-item">
           <div class="contact-label">🚇 Метро</div>
-          <div class="contact-value">Хрещатик (2 хвилини пішки)</div>
+          <div class="contact-value">Хрещатик — 2 хвилини пішки</div>
         </div>
         <div class="contact-item">
-          <div class="contact-label">🏙️ Орієнтир</div>
-          <div class="contact-value">Центр міста, поруч з Майданом Незалежності</div>
-        </div>
-        <div class="contact-label">Режим роботи</div>
+          <div class="contact-label">Режим роботи</div>
           <div class="contact-value">Пн–Пт: 14:00 – 20:00<br>Сб: 10:00 – 16:00</div>
         </div>
       </div>
     </div>
     <div class="reveal">
       <div class="map-placeholder">
-        <!-- Вставте сюди Google Maps iframe -->
-        <span><iframe src="https://google.com" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></span>
+        <span>Google Maps iframe</span>
       </div>
     </div>
   </div>
 </section>
 
+<!-- ═══ FOOTER ═══ -->
 <footer>
   <div class="footer-copy">© 2025 CombinationChess. Всі права захищені.</div>
   <nav class="footer-nav">
@@ -669,7 +982,7 @@
   </nav>
 </footer>
 
-<!-- MODAL -->
+<!-- ═══ MODAL ═══ -->
 <div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -701,7 +1014,7 @@
           <option>Індивідуальні заняття</option>
         </select>
       </div>
-      <button class="btn-primary form-submit" onclick="submitModal()">Надіслати заявку →</button>
+      <button class="btn-primary form-submit mag" onclick="submitModal()">Надіслати заявку →</button>
       <p class="form-note">Ми зв'яжемось протягом години</p>
     </div>
     <div class="form-success" id="modalSuccess" style="display:none">
@@ -712,93 +1025,265 @@
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════ -->
 <script>
-// CHESS HERO BOARD
+/* ── PAGE LOADER ── */
+window.addEventListener('load',()=>{
+  setTimeout(()=>document.getElementById('loader').classList.add('done'),600);
+});
+
+/* ── CUSTOM CURSOR ── */
+const dot  = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  dot.style.left=mx+'px'; dot.style.top=my+'px';
+});
+
+(function animRing(){
+  rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+})();
+
+document.querySelectorAll('a,button,.adv-card,.prog-card,.price-card,.review-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>ring.classList.add('hovering'));
+  el.addEventListener('mouseleave',()=>ring.classList.remove('hovering'));
+});
+document.addEventListener('mousedown',()=>ring.classList.add('clicking'));
+document.addEventListener('mouseup',()=>ring.classList.remove('clicking'));
+
+/* ── PARTICLE CANVAS ── */
 (function(){
-  const pieces = ['♜','♞','♝','♛','♚','♝','♞','♜'];
-  const wpieces = ['♖','♘','♗','♕','♔','♗','♘','♖'];
-  const board = document.getElementById('heroBoard');
-  if(!board) return;
+  const canvas=document.getElementById('particle-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,particles=[];
+  const PIECES=['♟','♙','♔','♚','♕','♛'];
+  const N=22;
+
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+
+  class Particle{
+    constructor(){this.reset(true)}
+    reset(init){
+      this.x=Math.random()*W;
+      this.y=init?Math.random()*H:H+40;
+      this.size=Math.random()*14+8;
+      this.speed=Math.random()*.3+.1;
+      this.opacity=Math.random()*.12+.04;
+      this.drift=(Math.random()-.5)*.3;
+      this.piece=PIECES[Math.floor(Math.random()*PIECES.length)];
+      this.rotation=Math.random()*Math.PI*2;
+      this.rotSpeed=(Math.random()-.5)*.005;
+    }
+    update(){
+      this.y-=this.speed;this.x+=this.drift;
+      this.rotation+=this.rotSpeed;
+      if(this.y<-40)this.reset(false);
+    }
+    draw(){
+      ctx.save();
+      ctx.translate(this.x,this.y);
+      ctx.rotate(this.rotation);
+      ctx.globalAlpha=this.opacity;
+      ctx.fillStyle='#c9a84c';
+      ctx.font=`${this.size}px serif`;
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(this.piece,0,0);
+      ctx.restore();
+    }
+  }
+
+  for(let i=0;i<N;i++)particles.push(new Particle());
+
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{p.update();p.draw()});
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* ── HERO CHESS BOARD ── */
+(function(){
+  const b=['♜','♞','♝','♛','♚','♝','♞','♜'];
+  const w=['♖','♘','♗','♕','♔','♗','♘','♖'];
+  const board=document.getElementById('heroBoard');
+  if(!board)return;
   for(let r=0;r<8;r++){
     for(let c=0;c<8;c++){
-      const sq = document.createElement('div');
-      sq.className = 'sq'+((r+c)%2===0?' d':'');
-      if(r===0) sq.textContent = pieces[c];
-      else if(r===1) sq.textContent = '♟';
-      else if(r===6) sq.textContent = '♙';
-      else if(r===7) sq.textContent = wpieces[c];
+      const sq=document.createElement('div');
+      sq.className='sq'+((r+c)%2===0?' d':'');
+      if(r===0)sq.textContent=b[c];
+      else if(r===1)sq.textContent='♟';
+      else if(r===6)sq.textContent='♙';
+      else if(r===7)sq.textContent=w[c];
       board.appendChild(sq);
     }
   }
 })();
 
-// TABS
-function switchTab(id, btn){
+/* ── SCROLL: header + reveal + stagger ── */
+const header=document.getElementById('header');
+
+const revealObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target)}
+  });
+},{threshold:.1});
+
+document.querySelectorAll('.reveal,.stagger').forEach(el=>revealObs.observe(el));
+
+window.addEventListener('scroll',()=>{
+  header.classList.toggle('scrolled',window.scrollY>40);
+},{ passive:true });
+
+/* ── COUNTER ANIMATION ── */
+function animateCounter(el){
+  const target=+el.dataset.count;
+  const suffix=el.dataset.suffix||'';
+  const dur=1800;
+  const start=performance.now();
+  function tick(now){
+    const p=Math.min((now-start)/dur,1);
+    const ease=1-Math.pow(1-p,4);
+    el.textContent=Math.round(ease*target)+suffix;
+    if(p<1)requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+const counterObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      animateCounter(e.target);
+      counterObs.unobserve(e.target);
+    }
+  });
+},{threshold:.5});
+document.querySelectorAll('.stat-num[data-count]').forEach(el=>counterObs.observe(el));
+
+/* ── MAGNETIC BUTTONS ── */
+document.querySelectorAll('.mag').forEach(el=>{
+  el.addEventListener('mousemove',e=>{
+    const r=el.getBoundingClientRect();
+    const dx=e.clientX-(r.left+r.width/2);
+    const dy=e.clientY-(r.top+r.height/2);
+    el.style.transform=`translate(${dx*.12}px,${dy*.12}px)`;
+  });
+  el.addEventListener('mouseleave',()=>{el.style.transform=''});
+});
+
+/* ── CARD SPOTLIGHT (mouse glow) ── */
+document.querySelectorAll('.adv-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    card.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+    card.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+  });
+});
+
+/* ── PARALLAX HERO BOARD ── */
+document.addEventListener('mousemove',e=>{
+  const board=document.getElementById('heroBoard');
+  if(!board)return;
+  const rx=(e.clientX/window.innerWidth-.5)*18;
+  const ry=(e.clientY/window.innerHeight-.5)*10;
+  board.style.transform=`translateY(-50%) rotate(${rx*.02}deg) translate(${rx*.5}px,${ry*.5}px)`;
+},{passive:true});
+
+/* ── TABS ── */
+function switchTab(id,btn){
   document.querySelectorAll('.prog-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.prog-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('active');
+  // re-observe stagger inside
+  const grid=document.querySelector('#tab-'+id+' .stagger');
+  if(grid&&!grid.classList.contains('visible')){
+    grid.classList.add('visible');
+  }
 }
 
-// MODAL
-function openModal(){ document.getElementById('modal').classList.add('open'); document.body.style.overflow='hidden'; }
-function closeModal(){ document.getElementById('modal').classList.remove('open'); document.body.style.overflow=''; }
-function closeModalOutside(e){ if(e.target===document.getElementById('modal')) closeModal(); }
+/* ── MODAL ── */
+function openModal(){
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+function closeModalOutside(e){if(e.target===document.getElementById('modal'))closeModal()}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-// MOBILE MENU
-function toggleMenu(){ document.getElementById('mobileNav').classList.toggle('open'); }
-function closeMenu(){ document.getElementById('mobileNav').classList.remove('open'); }
+/* ── MOBILE MENU ── */
+function toggleMenu(){
+  const nav=document.getElementById('mobileNav');
+  const btn=document.getElementById('burgerBtn');
+  nav.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+function closeMenu(){
+  document.getElementById('mobileNav').classList.remove('open');
+  document.getElementById('burgerBtn').classList.remove('open');
+}
 
-// VALIDATION
-function vName(v){ return v.trim().length>=2; }
-function vPhone(v){ return /[\d]{7,}/.test(v.replace(/[\s\-\+\(\)]/g,'')); }
+/* ── VALIDATION ── */
+function vName(v){return v.trim().length>=2}
+function vPhone(v){return /\d{7,}/.test(v.replace(/[\s\-\+\(\)]/g,''))}
 
-// MAIN FORM
+/* ── TELEGRAM ── */
+const TG_TOKEN='8519232112:AAHWbdb_i6wjMqogD3blZqE-mkewTLHt95c';
+const TG_CHAT='887078537';
+
+async function sendTG(name,phone,tg,prog){
+  const time=new Date().toLocaleString('uk-UA',{timeZone:'Europe/Kyiv'});
+  const text=`♟ <b>Нова заявка — CombinationChess</b>\n\n`+
+    `👤 <b>Ім'я:</b> ${esc(name)}\n`+
+    `📞 <b>Телефон:</b> ${esc(phone)}`+
+    (tg?`\n✈️ <b>Telegram:</b> ${esc(tg)}`:'')+
+    (prog?`\n📚 <b>Програма:</b> ${esc(prog)}`:'')+
+    `\n📍 <b>Місто:</b> Київ`+
+    `\n⏰ <b>Час:</b> ${time}`;
+  try{
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:TG_CHAT,text,parse_mode:'HTML'})
+    });
+  }catch(e){console.error(e)}
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+/* ── FORMS ── */
 function submitForm(){
   const n=document.getElementById('name').value;
   const p=document.getElementById('phone').value;
   let ok=true;
-  document.getElementById('nameErr').classList.toggle('show',!vName(n)); if(!vName(n)) ok=false;
-  document.getElementById('phoneErr').classList.toggle('show',!vPhone(p)); if(!vPhone(p)) ok=false;
-  if(!ok) return;
+  document.getElementById('nameErr').classList.toggle('show',!vName(n));if(!vName(n))ok=false;
+  document.getElementById('phoneErr').classList.toggle('show',!vPhone(p));if(!vPhone(p))ok=false;
+  if(!ok)return;
   sendTG(n,p,document.getElementById('telegram').value,document.getElementById('program').value);
   document.getElementById('mainFormWrap').style.display='none';
   document.getElementById('formSuccess').style.display='block';
 }
-
-// MODAL FORM
 function submitModal(){
   const n=document.getElementById('mname').value;
   const p=document.getElementById('mphone').value;
   let ok=true;
-  document.getElementById('mnameErr').classList.toggle('show',!vName(n)); if(!vName(n)) ok=false;
-  document.getElementById('mphoneErr').classList.toggle('show',!vPhone(p)); if(!vPhone(p)) ok=false;
-  if(!ok) return;
+  document.getElementById('mnameErr').classList.toggle('show',!vName(n));if(!vName(n))ok=false;
+  document.getElementById('mphoneErr').classList.toggle('show',!vPhone(p));if(!vPhone(p))ok=false;
+  if(!ok)return;
   sendTG(n,p,document.getElementById('mtelegram').value,document.getElementById('mprogram').value);
   document.getElementById('modalFormWrap').style.display='none';
   document.getElementById('modalSuccess').style.display='block';
 }
-
-// TELEGRAM — відправка заявок адміністратору
-function sendTG(name,phone,tg,prog){
-  const BOT='8519232112:AAHWbdb_i6wjMqogD3blZqE-mkewTLHt95c';
-  const CHAT='887078537';
-  const time = new Date().toLocaleString('uk-UA', {timeZone:'Europe/Kyiv'});
-  const msg=`♟ <b>Нова заявка!</b>\n\n👤 <b>Ім'я:</b> ${name}\n📞 <b>Телефон:</b> ${phone}${tg?'\n✈️ <b>Telegram:</b> '+tg:''}${prog?'\n📚 <b>Програма:</b> '+prog:''}\n⏰ <b>Час:</b> ${time}\n\n🏫 <i>CombinationChess — Шахова школа</i>`;
-  fetch(`https://api.telegram.org/bot${BOT}/sendMessage`,{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({chat_id:CHAT, text:msg, parse_mode:'HTML'})
-  }).catch(console.error);
-}
-
-// SCROLL REVEAL
-const obs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);} });
-},{threshold:0.1});
-document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
-
-// ESC close modal
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 </script>
 </body>
 </html>
