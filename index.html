@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Шахматная школа для детей и взрослых. Онлайн и офлайн занятия, опытные тренеры, индивидуальный подход. Запишитесь на пробное занятие.">
+<title>RoyalChess — Шахматная школа для детей и взрослых</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: rgba(201,168,76,0.15);
+    --text: #f0ece4;
+    --text-muted: #8a8278;
+    --border: rgba(201,168,76,0.2);
+    --radius: 4px;
+    --serif: 'Cormorant Garamond', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.6;
+    overflow-x: hidden;
+    background-image: repeating-conic-gradient(rgba(201,168,76,0.04) 0% 25%, transparent 0% 50%);
+    background-size: 40px 40px;
+  }
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 0 clamp(1.5rem,5vw,4rem); height: 72px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(13,13,13,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo { font-family: var(--serif); font-size: 1.5rem; font-weight: 700; color: var(--gold); letter-spacing: .05em; text-decoration: none; }
+  .logo span { color: var(--text); }
+  nav { display: flex; align-items: center; gap: 2rem; }
+  nav a { color: var(--text-muted); text-decoration: none; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; transition: color .2s; }
+  nav a:hover { color: var(--gold); }
+  .btn-primary {
+    background: var(--gold); color: #0d0d0d; border: none;
+    padding: .65rem 1.6rem; font-family: var(--sans); font-size: .82rem;
+    font-weight: 500; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; text-decoration: none; display: inline-block;
+    transition: background .2s, transform .15s; border-radius: var(--radius);
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent; color: var(--gold); border: 1px solid var(--gold);
+    padding: .65rem 1.6rem; font-family: var(--sans); font-size: .82rem;
+    font-weight: 500; letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer; text-decoration: none; display: inline-block;
+    transition: all .2s; border-radius: var(--radius);
+  }
+  .btn-outline:hover { background: var(--gold-dim); }
+  .burger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+  .burger span { display: block; width: 24px; height: 1.5px; background: var(--text); transition: all .3s; }
+
+  #hero {
+    min-height: 100vh; display: flex; align-items: center;
+    padding: 100px clamp(1.5rem,5vw,4rem) 4rem; position: relative; overflow: hidden;
+  }
+  .hero-board {
+    position: absolute; right: -60px; top: 50%; transform: translateY(-50%);
+    width: min(55vw,680px); opacity: .18; pointer-events: none;
+    font-size: clamp(60px,8vw,120px); line-height: 1;
+    display: grid; grid-template-columns: repeat(8,1fr); filter: blur(.5px);
+  }
+  .hero-board .sq { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+  .hero-board .sq.d { background: rgba(201,168,76,0.12); }
+  .hero-content { position: relative; z-index: 2; max-width: 600px; }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: .6rem;
+    border: 1px solid var(--border); padding: .35rem 1rem; border-radius: 100px;
+    font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gold);
+    margin-bottom: 2rem; opacity: 0; animation: fadeUp .6s .1s ease forwards;
+  }
+  .hero-tag::before { content: '♟'; }
+  h1 {
+    font-family: var(--serif); font-size: clamp(2.8rem,6vw,5.5rem); font-weight: 700;
+    line-height: 1.05; letter-spacing: -.01em; margin-bottom: 1.5rem;
+    opacity: 0; animation: fadeUp .7s .25s ease forwards;
+  }
+  h1 em { color: var(--gold); font-style: normal; }
+  .hero-sub {
+    font-size: 1.05rem; color: var(--text-muted); max-width: 480px;
+    margin-bottom: 2.5rem; opacity: 0; animation: fadeUp .7s .4s ease forwards;
+  }
+  .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; opacity: 0; animation: fadeUp .7s .55s ease forwards; }
+  .hero-stats {
+    display: flex; gap: 2.5rem; margin-top: 4rem; padding-top: 2rem;
+    border-top: 1px solid var(--border); opacity: 0; animation: fadeUp .7s .7s ease forwards; flex-wrap: wrap;
+  }
+  .stat-num { font-family: var(--serif); font-size: 2rem; font-weight: 600; color: var(--gold); }
+  .stat-label { font-size: .78rem; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+  section { padding: clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem); }
+  .section-label { font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: .8rem; }
+  .section-title { font-family: var(--serif); font-size: clamp(2rem,4vw,3.2rem); font-weight: 700; line-height: 1.1; margin-bottom: 1rem; }
+  .section-sub { color: var(--text-muted); max-width: 540px; margin-bottom: 3.5rem; }
+
+  #about { background: var(--surface); }
+  .advantages-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 1.5px; background: var(--border); border: 1px solid var(--border); }
+  .adv-card { background: var(--surface); padding: 2.5rem 2rem; transition: background .25s; position: relative; overflow: hidden; }
+  .adv-card::before { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: var(--gold); transition: width .35s ease; }
+  .adv-card:hover { background: var(--surface2); }
+  .adv-card:hover::before { width: 100%; }
+  .adv-icon { font-size: 2rem; margin-bottom: 1.2rem; }
+  .adv-title { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; margin-bottom: .6rem; }
+  .adv-desc { font-size: .88rem; color: var(--text-muted); line-height: 1.7; }
+
+  .prog-tabs { display: flex; border: 1px solid var(--border); width: fit-content; margin-bottom: 3rem; border-radius: var(--radius); overflow: hidden; flex-wrap: wrap; }
+  .prog-tab { padding: .6rem 1.5rem; font-size: .82rem; font-weight: 500; letter-spacing: .07em; text-transform: uppercase; cursor: pointer; background: transparent; color: var(--text-muted); border: none; transition: all .2s; font-family: var(--sans); }
+  .prog-tab.active { background: var(--gold); color: #0d0d0d; }
+  .prog-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 1.5rem; }
+  .prog-card { background: var(--surface); border: 1px solid var(--border); padding: 2.5rem 2rem; border-radius: var(--radius); transition: border-color .25s; }
+  .prog-card:hover { border-color: var(--gold); }
+  .prog-badge { display: inline-block; font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; padding: .25rem .8rem; border: 1px solid var(--border); color: var(--text-muted); border-radius: 100px; margin-bottom: 1.5rem; }
+  .prog-name { font-family: var(--serif); font-size: 1.5rem; font-weight: 600; margin-bottom: .8rem; }
+  .prog-desc { font-size: .88rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.7; }
+  .prog-meta { display: flex; flex-direction: column; gap: .5rem; }
+  .prog-meta span { font-size: .8rem; color: var(--text-muted); }
+  .prog-meta span strong { color: var(--text); font-weight: 400; }
+  .prog-panel { display: none; }
+  .prog-panel.active { display: block; }
+
+  #prices { background: var(--surface); }
+  .prices-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 1.5rem; align-items: start; }
+  .price-card { background: var(--bg); border: 1px solid var(--border); padding: 2.5rem 2rem; border-radius: var(--radius); position: relative; transition: all .25s; }
+  .price-card:hover { border-color: var(--gold); transform: translateY(-4px); }
+  .price-card.popular { background: var(--gold-dim); border-color: var(--gold); }
+  .popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #0d0d0d; font-size: .68rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; padding: .2rem 1rem; border-radius: 100px; white-space: nowrap; }
+  .price-name { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.2rem; }
+  .price-amount { font-family: var(--serif); font-size: 3rem; font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: .3rem; }
+  .price-period { font-size: .8rem; color: var(--text-muted); margin-bottom: 1.8rem; }
+  .price-features { list-style: none; margin-bottom: 2rem; display: flex; flex-direction: column; gap: .7rem; }
+  .price-features li { font-size: .88rem; color: var(--text-muted); display: flex; gap: .6rem; }
+  .price-features li::before { content: '—'; color: var(--gold); flex-shrink: 0; }
+
+  .schedule-table { width: 100%; border-collapse: collapse; border: 1px solid var(--border); }
+  .schedule-table th { background: var(--surface); padding: 1rem 1.2rem; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); text-align: left; font-weight: 400; }
+  .schedule-table td { padding: 1rem 1.2rem; font-size: .88rem; border-top: 1px solid var(--border); color: var(--text-muted); }
+  .schedule-table tr:hover td { background: var(--surface); color: var(--text); }
+  .tag-group { display: inline-block; padding: .2rem .7rem; border: 1px solid var(--border); font-size: .72rem; border-radius: 100px; letter-spacing: .06em; }
+  .tag-online { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+
+  #reviews { background: var(--surface); }
+  .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 1.5rem; }
+  .review-card { background: var(--bg); border: 1px solid var(--border); padding: 2rem; border-radius: var(--radius); position: relative; }
+  .review-stars { color: var(--gold); font-size: .9rem; margin-bottom: 1rem; letter-spacing: .1em; }
+  .review-text { font-size: .9rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; font-style: italic; }
+  .review-author { font-size: .82rem; color: var(--text); font-weight: 500; }
+  .review-role { font-size: .75rem; color: var(--text-muted); }
+  .quote-mark { position: absolute; top: 1.2rem; right: 1.5rem; font-size: 4rem; color: var(--gold-dim); font-family: var(--serif); line-height: 1; pointer-events: none; }
+
+  #form-section { background: var(--bg); position: relative; overflow: hidden; }
+  #form-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 100%,rgba(201,168,76,0.07) 0%,transparent 70%); pointer-events: none; }
+  .form-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  .form-points { display: flex; flex-direction: column; gap: 1rem; }
+  .form-point { display: flex; align-items: flex-start; gap: .8rem; font-size: .88rem; color: var(--text-muted); }
+  .form-point::before { content: '♙'; color: var(--gold); flex-shrink: 0; margin-top: .1em; }
+  .contact-form { background: var(--surface); border: 1px solid var(--border); padding: 3rem; border-radius: var(--radius); }
+  .form-title { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; margin-bottom: 2rem; }
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group label { display: block; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: .5rem; }
+  .form-group input, .form-group select { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: .9rem 1rem; font-family: var(--sans); font-size: .95rem; border-radius: var(--radius); outline: none; transition: border-color .2s; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+  .form-group input::placeholder { color: var(--text-muted); }
+  .form-group select option { background: var(--surface); }
+  .form-error { font-size: .75rem; color: #e07070; margin-top: .3rem; display: none; }
+  .form-error.show { display: block; }
+  .form-submit { width: 100%; margin-top: 1.5rem; padding: 1rem; font-size: .9rem; }
+  .form-note { font-size: .75rem; color: var(--text-muted); margin-top: 1rem; text-align: center; }
+  .form-success { display: none; text-align: center; padding: 2rem; }
+  .form-success .success-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .form-success h3 { font-family: var(--serif); font-size: 1.5rem; margin-bottom: .5rem; }
+  .form-success p { color: var(--text-muted); font-size: .88rem; }
+
+  #contacts { background: var(--surface); }
+  .contacts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+  .contact-item { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 2rem; }
+  .contact-label { font-size: .72rem; letter-spacing: .15em; text-transform: uppercase; color: var(--gold); }
+  .contact-value { font-size: 1rem; color: var(--text); }
+  .contact-value a { color: var(--text); text-decoration: none; transition: color .2s; }
+  .contact-value a:hover { color: var(--gold); }
+  .map-placeholder { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); height: 280px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: .88rem; position: relative; overflow: hidden; }
+  .map-placeholder::before { content: '♟'; position: absolute; font-size: 10rem; opacity: .04; color: var(--gold); }
+
+  footer { border-top: 1px solid var(--border); padding: 2.5rem clamp(1.5rem,5vw,4rem); display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; justify-content: space-between; }
+  .footer-copy { font-size: .8rem; color: var(--text-muted); }
+  .footer-nav { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .footer-nav a { font-size: .8rem; color: var(--text-muted); text-decoration: none; transition: color .2s; }
+  .footer-nav a:hover { color: var(--gold); }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 3rem; max-width: 480px; width: 100%; position: relative; transform: translateY(20px); transition: transform .3s; max-height: 90vh; overflow-y: auto; }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: color .2s; }
+  .modal-close:hover { color: var(--text); }
+
+  .mobile-nav { position: fixed; top: 72px; left: 0; right: 0; background: rgba(13,13,13,0.98); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 2rem clamp(1.5rem,5vw,4rem); display: flex; flex-direction: column; gap: 1.5rem; transform: translateY(-100%); transition: transform .3s ease; z-index: 99; }
+  .mobile-nav.open { transform: translateY(0); }
+  .mobile-nav a { font-size: 1.1rem; color: var(--text-muted); text-decoration: none; }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  @media (max-width: 900px) {
+    nav a { display: none; }
+    .burger { display: flex; }
+    .form-wrap { grid-template-columns: 1fr; gap: 2.5rem; }
+    .contacts-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .hero-board { display: none; }
+  }
+  @media (max-width: 600px) {
+    .prices-grid { grid-template-columns: 1fr; }
+    .contact-form { padding: 2rem 1.5rem; }
+    .modal { padding: 2rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo">Royal<span>Chess</span></a>
+  <nav>
+    <a href="#about">О школе</a>
+    <a href="#programs">Программы</a>
+    <a href="#prices">Цены</a>
+    <a href="#contacts">Контакты</a>
+    <button class="btn-primary" onclick="openModal()">Записаться</button>
+  </nav>
+  <button class="burger" onclick="toggleMenu()" aria-label="Меню">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<div class="mobile-nav" id="mobileNav">
+  <a href="#about" onclick="closeMenu()">О школе</a>
+  <a href="#programs" onclick="closeMenu()">Программы</a>
+  <a href="#prices" onclick="closeMenu()">Цены</a>
+  <a href="#schedule" onclick="closeMenu()">Расписание</a>
+  <a href="#contacts" onclick="closeMenu()">Контакты</a>
+  <button class="btn-primary" onclick="openModal();closeMenu()">Записаться</button>
+</div>
+
+<section id="hero">
+  <div class="hero-board" id="heroBoard" aria-hidden="true"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Шахматная школа</div>
+    <h1>Мыслить на <em>несколько ходов</em> вперёд</h1>
+    <p class="hero-sub">Обучение шахматам для детей от 5 лет и взрослых. Онлайн и офлайн. Индивидуальный подход, опытные тренеры, реальный результат.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="openModal()">Записаться на пробное занятие</button>
+      <a href="#programs" class="btn-outline">Программы</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-num">8+</div><div class="stat-label">Лет опыта</div></div>
+      <div><div class="stat-num">500+</div><div class="stat-label">Учеников</div></div>
+      <div><div class="stat-num">12</div><div class="stat-label">Тренеров</div></div>
+      <div><div class="stat-num">100+</div><div class="stat-label">Турниров</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="reveal">
+    <div class="section-label">Наши преимущества</div>
+    <h2 class="section-title">Почему выбирают <em style="color:var(--gold);font-style:normal">RoyalChess</em></h2>
+    <p class="section-sub">Мы создаём среду, где каждый — от новичка до чемпиона — развивается в своём темпе.</p>
+  </div>
+  <div class="advantages-grid reveal">
+    <div class="adv-card">
+      <div class="adv-icon">♔</div>
+      <div class="adv-title">Опытные тренеры</div>
+      <div class="adv-desc">Команда сертифицированных специалистов с опытом от 5 лет. Среди нас — мастера и кандидаты в мастера спорта.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">♙</div>
+      <div class="adv-title">Индивидуальный подход</div>
+      <div class="adv-desc">Программа подбирается под уровень и цели каждого ученика. Мы не гоним поток — мы строим навык.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">♜</div>
+      <div class="adv-title">Онлайн и офлайн</div>
+      <div class="adv-desc">Занимайтесь из любой точки мира или посещайте очные занятия. Формат выбираете вы.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">♞</div>
+      <div class="adv-title">Развитие логики</div>
+      <div class="adv-desc">Шахматы развивают концентрацию, стратегическое мышление и усидчивость — навыки, важные в любой сфере.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">♛</div>
+      <div class="adv-title">Турниры и рейтинг</div>
+      <div class="adv-desc">Регулярные соревнования для учеников любого уровня. Получайте официальный рейтинг ФИДЕ.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">♝</div>
+      <div class="adv-title">Первое занятие — бесплатно</div>
+      <div class="adv-desc">Приходите без обязательств. Познакомьтесь с тренером и начните играть в первый же день.</div>
+    </div>
+  </div>
+</section>
+
+<section id="programs">
+  <div class="reveal">
+    <div class="section-label">Обучение</div>
+    <h2 class="section-title">Программы</h2>
+    <p class="section-sub">Три направления — для любого возраста и уровня подготовки.</p>
+  </div>
+  <div class="prog-tabs reveal">
+    <button class="prog-tab active" onclick="switchTab('children',this)">Дети</button>
+    <button class="prog-tab" onclick="switchTab('adults',this)">Взрослые</button>
+    <button class="prog-tab" onclick="switchTab('individual',this)">Индивидуально</button>
+  </div>
+  <div class="prog-panel active" id="tab-children">
+    <div class="prog-grid reveal">
+      <div class="prog-card">
+        <div class="prog-badge">5–8 лет</div>
+        <div class="prog-name">Юный шахматист</div>
+        <div class="prog-desc">Знакомство с фигурами, правилами и простыми тактиками. Занятия в игровой форме — обучение через интерес.</div>
+        <div class="prog-meta">
+          <span><strong>Длительность:</strong> 45 минут</span>
+          <span><strong>Формат:</strong> Группа до 6 / Онлайн</span>
+          <span><strong>Периодичность:</strong> 2 раза в неделю</span>
+        </div>
+      </div>
+      <div class="prog-card">
+        <div class="prog-badge">8–14 лет</div>
+        <div class="prog-name">Шахматный клуб</div>
+        <div class="prog-desc">Углублённое изучение дебютов, эндшпилей и стратегии. Подготовка к школьным и городским соревнованиям.</div>
+        <div class="prog-meta">
+          <span><strong>Длительность:</strong> 60 минут</span>
+          <span><strong>Формат:</strong> Группа до 8 / Онлайн</span>
+          <span><strong>Периодичность:</strong> 2–3 раза в неделю</span>
+        </div>
+      </div>
+      <div class="prog-card">
+        <div class="prog-badge">14–18 лет</div>
+        <div class="prog-name">Профессиональный старт</div>
+        <div class="prog-desc">Подготовка к турнирам ФИДЕ. Работа над слабыми местами, разбор партий гроссмейстеров.</div>
+        <div class="prog-meta">
+          <span><strong>Длительность:</strong> 90 минут</span>
+          <span><strong>Формат:</strong> Мини-группа до 4 / Онлайн</span>
+          <span><strong>Периодичность:</strong> 3 раза в неделю</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="prog-panel" id="tab-adults">
+    <div class="prog-grid reveal">
+      <div class="prog-card">
+        <div class="prog-badge">Начинающий</div>
+        <div class="prog-name">Шахматы с нуля</div>
+        <div class="prog-desc">Для тех, кто никогда не играл или забыл правила. За 2 месяца вы уверенно сядете за доску.</div>
+        <div class="prog-meta">
+          <span><strong>Длительность:</strong> 60 минут</span>
+          <span><strong>Формат:</strong> Группа / Онлайн</span>
+          <span><strong>Периодичность:</strong> 2 раза в неделю</span>
+        </div>
+      </div>
+      <div class="prog-card">
+        <div class="prog-badge">Уверенный игрок</div>
+        <div class="prog-name">Повышение уровня</div>
+        <div class="prog-desc">Изучение стратегии, анализ партий, работа с компьютером. Для тех, кто хочет перейти на новый уровень.</div>
+        <div class="prog-meta">
+          <span><strong>Длительность:</strong> 75 минут</span>
+          <span><strong>Формат:</strong> Онлайн / Офлайн</span>
+          <span><strong>Периодичность:</strong> 2 раза в неделю</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="prog-panel" id="tab-individual">
+    <div class="prog-grid reveal">
+      <div class="prog-card">
+        <div class="prog-badge">Любой уровень</div>
+        <div class="prog-name">Персональные занятия</div>
+        <div class="prog-desc">Один на один с тренером. Максимальная эффективность: только ваши цели, только ваш темп.</div>
+        <div class="prog-meta">
+          <span><strong>Длительность:</strong> 60–90 минут</span>
+          <span><strong>Формат:</strong> Онлайн / Офлайн</span>
+          <span><strong>Периодичность:</strong> По договорённости</span>
+        </div>
+      </div>
+      <div class="prog-card">
+        <div class="prog-badge">Соревнования</div>
+        <div class="prog-name">Подготовка к турниру</div>
+        <div class="prog-desc">Интенсивная подготовка перед конкретным соревнованием. Разбор соперников, дебютный репертуар.</div>
+        <div class="prog-meta">
+          <span><strong>Длительность:</strong> 90 минут</span>
+          <span><strong>Формат:</strong> Онлайн / Офлайн</span>
+          <span><strong>Периодичность:</strong> По плану подготовки</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:3rem;text-align:center" class="reveal">
+    <button class="btn-primary" onclick="openModal()">Записаться на программу →</button>
+  </div>
+</section>
+
+<section id="prices">
+  <div class="reveal">
+    <div class="section-label">Стоимость</div>
+    <h2 class="section-title">Тарифы</h2>
+    <p class="section-sub">Прозрачные цены. Без скрытых платежей.</p>
+  </div>
+  <div class="prices-grid reveal">
+    <div class="price-card">
+      <div class="price-name">Старт</div>
+      <div class="price-amount">1 200 ₴</div>
+      <div class="price-period">в месяц · группа</div>
+      <ul class="price-features">
+        <li>8 занятий в месяц</li>
+        <li>Группа до 8 человек</li>
+        <li>Онлайн-платформа</li>
+        <li>Домашние задания</li>
+      </ul>
+      <button class="btn-outline" style="width:100%" onclick="openModal()">Записаться</button>
+    </div>
+    <div class="price-card popular">
+      <div class="popular-badge">Популярный</div>
+      <div class="price-name">Развитие</div>
+      <div class="price-amount">2 400 ₴</div>
+      <div class="price-period">в месяц · мини-группа</div>
+      <ul class="price-features">
+        <li>12 занятий в месяц</li>
+        <li>Группа до 4 человек</li>
+        <li>Онлайн + офлайн</li>
+        <li>Разбор партий</li>
+        <li>Участие в турнирах</li>
+      </ul>
+      <button class="btn-primary" style="width:100%" onclick="openModal()">Записаться</button>
+    </div>
+    <div class="price-card">
+      <div class="price-name">Профи</div>
+      <div class="price-amount">4 500 ₴</div>
+      <div class="price-period">в месяц · индивидуально</div>
+      <ul class="price-features">
+        <li>8 личных занятий</li>
+        <li>Персональный тренер</li>
+        <li>Подготовка к ФИДЕ</li>
+        <li>ИИ-анализ партий</li>
+        <li>Приоритетная поддержка</li>
+      </ul>
+      <button class="btn-outline" style="width:100%" onclick="openModal()">Записаться</button>
+    </div>
+    <div class="price-card">
+      <div class="price-name">Корпоратив</div>
+      <div class="price-amount">По запросу</div>
+      <div class="price-period">для команд и компаний</div>
+      <ul class="price-features">
+        <li>Индивидуальный план</li>
+        <li>Тим-билдинг на шахматах</li>
+        <li>Выезд тренера в офис</li>
+        <li>Корпоративный турнир</li>
+      </ul>
+      <button class="btn-outline" style="width:100%" onclick="openModal()">Запросить</button>
+    </div>
+  </div>
+</section>
+
+<section id="schedule">
+  <div class="reveal">
+    <div class="section-label">Расписание</div>
+    <h2 class="section-title">Занятия</h2>
+    <p class="section-sub">Актуальное расписание групп. Онлайн-занятия — по индивидуальному договору.</p>
+  </div>
+  <div style="overflow-x:auto" class="reveal">
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th>Группа</th>
+          <th>Пн</th>
+          <th>Ср</th>
+          <th>Пт</th>
+          <th>Формат</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Юный шахматист (5–8 лет)</td>
+          <td>15:00</td><td>15:00</td><td>—</td>
+          <td><span class="tag-group">Офлайн</span></td>
+          <td><button class="btn-primary" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записаться</button></td>
+        </tr>
+        <tr>
+          <td>Шахматный клуб (8–14 лет)</td>
+          <td>16:30</td><td>16:30</td><td>16:30</td>
+          <td><span class="tag-group">Офлайн</span></td>
+          <td><button class="btn-primary" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записаться</button></td>
+        </tr>
+        <tr>
+          <td>Профессиональный старт (14+)</td>
+          <td>18:00</td><td>18:00</td><td>18:00</td>
+          <td><span class="tag-group">Офлайн</span></td>
+          <td><button class="btn-primary" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записаться</button></td>
+        </tr>
+        <tr>
+          <td>Взрослые — начинающие</td>
+          <td>—</td><td>19:30</td><td>19:30</td>
+          <td><span class="tag-group tag-online">Онлайн</span></td>
+          <td><button class="btn-primary" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записаться</button></td>
+        </tr>
+        <tr>
+          <td>Взрослые — повышение уровня</td>
+          <td>19:00</td><td>—</td><td>19:00</td>
+          <td><span class="tag-group tag-online">Онлайн</span></td>
+          <td><button class="btn-primary" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записаться</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="reviews">
+  <div class="reveal">
+    <div class="section-label">Отзывы</div>
+    <h2 class="section-title">Говорят ученики</h2>
+  </div>
+  <div class="reviews-grid reveal">
+    <div class="review-card">
+      <div class="quote-mark">"</div>
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">Отдала дочь в 6 лет, боялась что рано. Через полгода она уже участвовала в городском турнире. Тренер нашёл подход с первого занятия.</p>
+      <div class="review-author">Марина К.</div>
+      <div class="review-role">Мама ученицы, 7 лет</div>
+    </div>
+    <div class="review-card">
+      <div class="quote-mark">"</div>
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">Начал играть в 34 года, думал, что поздно. В RoyalChess убедили, что нет. За год вырос с нуля до уровня, где могу играть в клубах.</p>
+      <div class="review-author">Дмитрий Р.</div>
+      <div class="review-role">Ученик, 35 лет</div>
+    </div>
+    <div class="review-card">
+      <div class="quote-mark">"</div>
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">Сын перестал бросать недоделанные задачи — стал думать на несколько шагов вперёд. Школьные учителя тоже заметили изменения.</p>
+      <div class="review-author">Наталья П.</div>
+      <div class="review-role">Мама ученика, 11 лет</div>
+    </div>
+  </div>
+</section>
+
+<section id="form-section">
+  <div class="form-wrap">
+    <div class="form-left reveal">
+      <div class="section-label">Начните сейчас</div>
+      <h2 class="section-title">Первый шаг<br><em style="color:var(--gold);font-style:normal">бесплатный</em></h2>
+      <p class="section-sub">Оставьте заявку — мы свяжемся в течение часа, подберём программу и удобное время.</p>
+      <div class="form-points">
+        <div class="form-point">Пробное занятие без оплаты</div>
+        <div class="form-point">Тренер оценит уровень и даст рекомендации</div>
+        <div class="form-point">Никаких обязательств после пробного</div>
+        <div class="form-point">Онлайн или офлайн — на ваш выбор</div>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="contact-form" id="mainFormWrap">
+        <div class="form-title">Записаться на пробное</div>
+        <div class="form-group">
+          <label for="name">Ваше имя *</label>
+          <input type="text" id="name" placeholder="Иван Иванов">
+          <div class="form-error" id="nameErr">Введите имя (минимум 2 символа)</div>
+        </div>
+        <div class="form-group">
+          <label for="phone">Телефон *</label>
+          <input type="tel" id="phone" placeholder="+38 (0XX) XXX-XX-XX">
+          <div class="form-error" id="phoneErr">Введите корректный номер телефона</div>
+        </div>
+        <div class="form-group">
+          <label for="telegram">Telegram (необязательно)</label>
+          <input type="text" id="telegram" placeholder="@username">
+        </div>
+        <div class="form-group">
+          <label for="program">Программа</label>
+          <select id="program">
+            <option value="">Не выбрано</option>
+            <option>Юный шахматист (5–8 лет)</option>
+            <option>Шахматный клуб (8–14 лет)</option>
+            <option>Профессиональный старт (14+)</option>
+            <option>Взрослые — начинающие</option>
+            <option>Взрослые — повышение уровня</option>
+            <option>Индивидуальные занятия</option>
+          </select>
+        </div>
+        <button class="btn-primary form-submit" onclick="submitForm()">Отправить заявку →</button>
+        <p class="form-note">Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности</p>
+      </div>
+      <div class="form-success" id="formSuccess">
+        <div class="success-icon">♔</div>
+        <h3>Заявка принята!</h3>
+        <p>Мы свяжемся с вами в течение часа. Проверьте телефон — позвоним или напишем в Telegram.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contacts">
+  <div class="contacts-grid">
+    <div class="reveal">
+      <div class="section-label">Контакты</div>
+      <h2 class="section-title">Мы рядом</h2>
+      <div style="margin-top:2rem">
+        <div class="contact-item">
+          <div class="contact-label">Телефон</div>
+          <div class="contact-value"><a href="tel:+380991234567">+38 (099) 123-45-67</a></div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-label">Telegram</div>
+          <div class="contact-value"><a href="https://t.me/royalchess_ua" target="_blank">@royalchess_ua</a></div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-label">Email</div>
+          <div class="contact-value"><a href="mailto:info@royalchess.ua">info@royalchess.ua</a></div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-label">Адрес</div>
+          <div class="contact-value">вул. Шевченка, 42, 3-й поверх<br>Кам'янське, Дніпропетровська обл.</div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-label">Режим роботи</div>
+          <div class="contact-value">Пн–Пт: 14:00 – 20:00<br>Сб: 10:00 – 16:00</div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="map-placeholder">
+        <!-- Вставьте сюда Google Maps iframe -->
+        <span>Карта — вставьте Google Maps iframe</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-copy">© 2025 RoyalChess. Всі права захищені.</div>
+  <nav class="footer-nav">
+    <a href="#about">О школе</a>
+    <a href="#programs">Программы</a>
+    <a href="#prices">Цены</a>
+    <a href="#contacts">Контакты</a>
+    <a href="#">Политика конфиденциальности</a>
+  </nav>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalFormWrap">
+      <div class="form-title">Записаться на пробное</div>
+      <div class="form-group">
+        <label for="mname">Ваше имя *</label>
+        <input type="text" id="mname" placeholder="Иван Иванов">
+        <div class="form-error" id="mnameErr">Введите имя</div>
+      </div>
+      <div class="form-group">
+        <label for="mphone">Телефон *</label>
+        <input type="tel" id="mphone" placeholder="+38 (0XX) XXX-XX-XX">
+        <div class="form-error" id="mphoneErr">Введите корректный номер</div>
+      </div>
+      <div class="form-group">
+        <label for="mtelegram">Telegram (необязательно)</label>
+        <input type="text" id="mtelegram" placeholder="@username">
+      </div>
+      <div class="form-group">
+        <label for="mprogram">Программа</label>
+        <select id="mprogram">
+          <option value="">Не выбрано</option>
+          <option>Юный шахматист (5–8 лет)</option>
+          <option>Шахматный клуб (8–14 лет)</option>
+          <option>Профессиональный старт (14+)</option>
+          <option>Взрослые — начинающие</option>
+          <option>Взрослые — повышение уровня</option>
+          <option>Индивидуальные занятия</option>
+        </select>
+      </div>
+      <button class="btn-primary form-submit" onclick="submitModal()">Отправить заявку →</button>
+      <p class="form-note">Мы свяжемся в течение часа</p>
+    </div>
+    <div class="form-success" id="modalSuccess" style="display:none">
+      <div class="success-icon">♔</div>
+      <h3>Заявка принята!</h3>
+      <p>Мы свяжемся с вами в течение часа.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// CHESS HERO BOARD
+(function(){
+  const pieces = ['♜','♞','♝','♛','♚','♝','♞','♜'];
+  const wpieces = ['♖','♘','♗','♕','♔','♗','♘','♖'];
+  const board = document.getElementById('heroBoard');
+  if(!board) return;
+  for(let r=0;r<8;r++){
+    for(let c=0;c<8;c++){
+      const sq = document.createElement('div');
+      sq.className = 'sq'+((r+c)%2===0?' d':'');
+      if(r===0) sq.textContent = pieces[c];
+      else if(r===1) sq.textContent = '♟';
+      else if(r===6) sq.textContent = '♙';
+      else if(r===7) sq.textContent = wpieces[c];
+      board.appendChild(sq);
+    }
+  }
+})();
+
+// TABS
+function switchTab(id, btn){
+  document.querySelectorAll('.prog-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.prog-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// MODAL
+function openModal(){ document.getElementById('modal').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(){ document.getElementById('modal').classList.remove('open'); document.body.style.overflow=''; }
+function closeModalOutside(e){ if(e.target===document.getElementById('modal')) closeModal(); }
+
+// MOBILE MENU
+function toggleMenu(){ document.getElementById('mobileNav').classList.toggle('open'); }
+function closeMenu(){ document.getElementById('mobileNav').classList.remove('open'); }
+
+// VALIDATION
+function vName(v){ return v.trim().length>=2; }
+function vPhone(v){ return /[\d]{7,}/.test(v.replace(/[\s\-\+\(\)]/g,'')); }
+
+// MAIN FORM
+function submitForm(){
+  const n=document.getElementById('name').value;
+  const p=document.getElementById('phone').value;
+  let ok=true;
+  document.getElementById('nameErr').classList.toggle('show',!vName(n)); if(!vName(n)) ok=false;
+  document.getElementById('phoneErr').classList.toggle('show',!vPhone(p)); if(!vPhone(p)) ok=false;
+  if(!ok) return;
+  sendTG(n,p,document.getElementById('telegram').value,document.getElementById('program').value);
+  document.getElementById('mainFormWrap').style.display='none';
+  document.getElementById('formSuccess').style.display='block';
+}
+
+// MODAL FORM
+function submitModal(){
+  const n=document.getElementById('mname').value;
+  const p=document.getElementById('mphone').value;
+  let ok=true;
+  document.getElementById('mnameErr').classList.toggle('show',!vName(n)); if(!vName(n)) ok=false;
+  document.getElementById('mphoneErr').classList.toggle('show',!vPhone(p)); if(!vPhone(p)) ok=false;
+  if(!ok) return;
+  sendTG(n,p,document.getElementById('mtelegram').value,document.getElementById('mprogram').value);
+  document.getElementById('modalFormWrap').style.display='none';
+  document.getElementById('modalSuccess').style.display='block';
+}
+
+// TELEGRAM — замените YOUR_BOT_TOKEN и YOUR_CHAT_ID
+function sendTG(name,phone,tg,prog){
+  const BOT='YOUR_BOT_TOKEN';
+  const CHAT='YOUR_CHAT_ID';
+  const msg=`♟ Новая заявка!\n\n👤 ${name}\n📞 ${phone}${tg?'\n✈️ '+tg:''}${prog?'\n📚 '+prog:''}\n⏰ ${new Date().toLocaleString('ru-UA')}`;
+  if(BOT==='YOUR_BOT_TOKEN'){ console.log('Demo mode. Заявка:', {name,phone,tg,prog}); return; }
+  fetch(`https://api.telegram.org/bot${BOT}/sendMessage`,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({chat_id:CHAT,text:msg})
+  }).catch(console.error);
+}
+
+// SCROLL REVEAL
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);} });
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// ESC close modal
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+</script>
+</body>
+</html>
