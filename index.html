@@ -773,7 +773,7 @@ function submitModal(){
 // TELEGRAM — замените YOUR_BOT_TOKEN и YOUR_CHAT_ID
 function sendTG(name,phone,tg,prog){
   const BOT='8519232112:AAHWbdb_i6wjMqogD3blZqE-mkewTLHt95c';
-  const CHAT='8519232112';
+  const CHAT='-1003598675202';
   const msg=`♟ Новая заявка!\n\n👤 ${name}\n📞 ${phone}${tg?'\n✈️ '+tg:''}${prog?'\n📚 '+prog:''}\n⏰ ${new Date().toLocaleString('ru-UA')}`;
   if(BOT==='YOUR_BOT_TOKEN'){ console.log('Demo mode. Заявка:', {name,phone,tg,prog}); return; }
   fetch(`https://api.telegram.org/bot${BOT}/sendMessage`,{
