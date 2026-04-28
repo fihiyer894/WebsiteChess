@@ -7,788 +7,530 @@
 <title>CombinationChess — Шахова школа · Київ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
-/* ════════════════════════════════════════
-   ROOT & RESET
-════════════════════════════════════════ */
-:root {
-  --bg:#0d0d0d; --surface:#141414; --surface2:#1c1c1c;
-  --gold:#c9a84c; --gold-light:#e8c97a; --gold-dim:rgba(201,168,76,.14);
-  --text:#f0ece4; --text-muted:#7a766e;
-  --border:rgba(201,168,76,.18);
-  --radius:6px;
-  --serif:'Cormorant Garamond',serif;
-  --sans:'DM Sans',sans-serif;
-  --ease-out-expo:cubic-bezier(.16,1,.3,1);
-  --ease-in-out:cubic-bezier(.4,0,.2,1);
+:root{
+  --bg:#080808; --surface:#101010; --surface2:#181818; --surface3:#202020;
+  --gold:#c9a84c; --gold-light:#e8c97a; --gold-pale:#f5e6c0; --gold-dim:rgba(201,168,76,.12);
+  --text:#ede9e1; --text-muted:#6b6760; --text-soft:#9e9890;
+  --border:rgba(201,168,76,.15); --border-strong:rgba(201,168,76,.35);
+  --radius:4px; --radius-lg:10px;
+  --serif:'Cormorant Garamond',serif; --sans:'DM Sans',sans-serif;
+  --expo:cubic-bezier(.16,1,.3,1); --smooth:cubic-bezier(.4,0,.2,1);
+  --glow:0 0 40px rgba(201,168,76,.12);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  background:var(--bg);color:var(--text);
-  font-family:var(--sans);font-weight:300;line-height:1.65;
-  overflow-x:hidden;cursor:none;
-}
-::selection{background:var(--gold);color:#0d0d0d}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.7;overflow-x:hidden}
+::selection{background:var(--gold);color:#000}
+img{display:block;max-width:100%}
 
-/* ════════════════════════════════════════
-   PAGE LOADER
-════════════════════════════════════════ */
+/* ══ NOISE TEXTURE overlay ══ */
+body::before{
+  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size:200px;opacity:.025;mix-blend-mode:overlay;
+}
+
+/* ══ LOADER ══ */
 #loader{
   position:fixed;inset:0;z-index:9999;background:var(--bg);
-  display:flex;align-items:center;justify-content:center;
-  flex-direction:column;gap:1.5rem;
-  transition:opacity .6s var(--ease-out-expo),visibility .6s;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2rem;
+  transition:opacity .8s var(--expo),visibility .8s;
 }
 #loader.done{opacity:0;visibility:hidden;pointer-events:none}
-.loader-logo{
-  font-family:var(--serif);font-size:2rem;font-weight:700;
-  color:var(--gold);letter-spacing:.06em;
-  animation:loaderPulse 1.4s ease-in-out infinite;
-}
-.loader-logo span{color:var(--text)}
-.loader-bar{
-  width:160px;height:1px;background:rgba(201,168,76,.15);
-  position:relative;overflow:hidden;
-}
-.loader-bar::after{
-  content:'';position:absolute;left:-100%;top:0;width:100%;height:100%;
-  background:var(--gold);animation:loaderSlide 1.4s var(--ease-out-expo) infinite;
-}
-@keyframes loaderPulse{0%,100%{opacity:.5}50%{opacity:1}}
-@keyframes loaderSlide{0%{left:-100%}100%{left:100%}}
+.ld-logo{font-family:var(--serif);font-size:1.8rem;font-weight:700;color:var(--gold);letter-spacing:.1em;animation:pulse 1.6s ease-in-out infinite}
+.ld-logo span{color:var(--text);font-weight:400}
+.ld-track{width:140px;height:1px;background:rgba(201,168,76,.1);position:relative;overflow:hidden}
+.ld-track::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:translateX(-100%);animation:sweep 1.4s var(--expo) infinite}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+@keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 
-/* ════════════════════════════════════════
-   CUSTOM CURSOR
-════════════════════════════════════════ */
-#cursor-dot,#cursor-ring{
-  position:fixed;border-radius:50%;pointer-events:none;
-  z-index:9998;mix-blend-mode:difference;will-change:transform;
+/* ══ CURSOR (desktop) ══ */
+#cur-dot,#cur-ring{position:fixed;border-radius:50%;pointer-events:none;z-index:8000;display:none}
+body.has-cursor{cursor:none}
+body.has-cursor #cur-dot,body.has-cursor #cur-ring{display:block}
+body.has-cursor a,body.has-cursor button{cursor:none}
+#cur-dot{width:5px;height:5px;background:var(--gold);left:0;top:0;transform:translate(-50%,-50%)}
+#cur-ring{
+  width:32px;height:32px;border:1px solid rgba(201,168,76,.5);
+  left:0;top:0;transform:translate(-50%,-50%);
+  transition:width .28s var(--expo),height .28s var(--expo),border-color .25s,opacity .25s;
 }
-#cursor-dot{
-  width:6px;height:6px;background:#fff;
-  transform:translate(-50%,-50%);transition:transform .08s linear;
-}
-#cursor-ring{
-  width:36px;height:36px;border:1px solid rgba(255,255,255,.5);
-  transform:translate(-50%,-50%);
-  transition:transform .18s var(--ease-out-expo),
-             width .3s var(--ease-out-expo),
-             height .3s var(--ease-out-expo),
-             border-color .3s;
-}
-#cursor-ring.hovering{width:56px;height:56px;border-color:var(--gold)}
-#cursor-ring.clicking{width:28px;height:28px}
-@media(pointer:coarse){#cursor-dot,#cursor-ring{display:none}body{cursor:auto}}
+#cur-ring.big{width:52px;height:52px;border-color:var(--gold);opacity:.8}
+#cur-ring.small{width:20px;height:20px}
 
-/* ════════════════════════════════════════
-   PARTICLE CANVAS
-════════════════════════════════════════ */
-#particle-canvas{
-  position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.6;
-}
+/* ══ PARTICLES ══ */
+#pcvs{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5}
 
-/* ════════════════════════════════════════
-   HEADER / NAV
-════════════════════════════════════════ */
+/* ══ HEADER ══ */
 header{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  padding:0 clamp(1.5rem,5vw,4rem);height:72px;
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  padding:0 clamp(1.5rem,5vw,4rem);height:70px;
   display:flex;align-items:center;justify-content:space-between;
-  background:rgba(13,13,13,0);backdrop-filter:blur(0px);
-  border-bottom:1px solid transparent;
-  transition:background .5s,backdrop-filter .5s,border-color .5s;
+  background:rgba(8,8,8,0);border-bottom:1px solid transparent;
+  transition:background .5s,border-color .5s;will-change:background;
 }
 header.scrolled{
-  background:rgba(13,13,13,.88);backdrop-filter:blur(20px);
-  border-color:var(--border);
+  background:rgba(8,8,8,.92);border-color:var(--border);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  backdrop-filter:blur(20px) saturate(180%);
 }
-.logo{
-  font-family:var(--serif);font-size:1.45rem;font-weight:700;
-  color:var(--gold);letter-spacing:.04em;text-decoration:none;
-  white-space:nowrap;position:relative;z-index:1;
-}
-.logo span{color:var(--text)}
+.logo{font-family:var(--serif);font-size:1.4rem;font-weight:700;color:var(--gold);letter-spacing:.05em;text-decoration:none;white-space:nowrap}
+.logo span{color:var(--text);font-weight:300}
 nav{display:flex;align-items:center;gap:2rem}
-nav a{
-  color:var(--text-muted);text-decoration:none;font-size:.82rem;
-  letter-spacing:.09em;text-transform:uppercase;
-  transition:color .2s;position:relative;cursor:pointer;
+nav > a{
+  color:var(--text-muted);text-decoration:none;font-size:.78rem;
+  letter-spacing:.1em;text-transform:uppercase;transition:color .2s;position:relative;
 }
-@media(pointer:fine){nav a{cursor:none}}
-nav a::after{
-  content:'';position:absolute;left:0;bottom:-2px;
-  width:0;height:1px;background:var(--gold);
-  transition:width .3s var(--ease-out-expo);
-}
-nav a:hover{color:var(--gold)}
-nav a:hover::after{width:100%}
+nav > a::after{content:'';position:absolute;left:0;bottom:-3px;width:0;height:1px;background:var(--gold);transition:width .35s var(--expo)}
+nav > a:hover{color:var(--gold)}
+nav > a:hover::after{width:100%}
 
-/* BUTTONS */
-.btn-primary,.btn-outline{
-  position:relative;overflow:hidden;
-  padding:.7rem 1.8rem;font-family:var(--sans);font-size:.82rem;
-  font-weight:500;letter-spacing:.11em;text-transform:uppercase;
-  cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;
-  border-radius:var(--radius);transition:transform .2s var(--ease-out-expo);
-  border:none;
+/* ══ BUTTONS ══ */
+.btn,.btn-o{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:.68rem 1.8rem;font-family:var(--sans);font-size:.78rem;font-weight:500;
+  letter-spacing:.12em;text-transform:uppercase;text-decoration:none;
+  border-radius:var(--radius);position:relative;overflow:hidden;
+  border:none;transition:transform .25s var(--expo),filter .2s,box-shadow .3s;
+  -webkit-tap-highlight-color:transparent;user-select:none;
 }
-@media(pointer:fine){.btn-primary,.btn-outline{cursor:none}}
-.btn-primary{background:var(--gold);color:#0d0d0d}
-.btn-outline{background:transparent;color:var(--gold);border:1px solid var(--gold)}
-.btn-primary::before,.btn-outline::before{
-  content:'';position:absolute;inset:0;
-  background:rgba(255,255,255,.15);
-  transform:translateX(-110%) skewX(-15deg);
-  transition:transform .45s var(--ease-out-expo);
+.btn{background:var(--gold);color:#000}
+.btn-o{background:transparent;color:var(--gold);border:1px solid rgba(201,168,76,.4)}
+/* shimmer */
+.btn::before,.btn-o::before{
+  content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.2),transparent);
+  transition:left .5s var(--expo);pointer-events:none;
 }
-.btn-primary:hover::before,.btn-outline:hover::before{transform:translateX(110%) skewX(-15deg)}
-.btn-primary:hover{transform:translateY(-2px)}
-.btn-outline:hover{transform:translateY(-2px);background:var(--gold-dim)}
+.btn:hover::before,.btn-o:hover::before{left:150%}
+.btn:hover{filter:brightness(1.12);box-shadow:0 6px 30px rgba(201,168,76,.3)}
+.btn-o:hover{background:var(--gold-dim);border-color:rgba(201,168,76,.7)}
+.btn:active,.btn-o:active{transform:scale(.96)!important;filter:brightness(.92)}
 
-.burger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
-@media(pointer:fine){.burger{cursor:none}}
-.burger span{display:block;width:24px;height:1.5px;background:var(--text);transition:all .3s}
-.burger.open span:nth-child(1){transform:rotate(45deg) translate(4.5px,4.5px)}
-.burger.open span:nth-child(2){opacity:0;transform:translateX(-8px)}
-.burger.open span:nth-child(3){transform:rotate(-45deg) translate(4.5px,-4.5px)}
+/* small variant */
+.btn-sm{padding:.42rem .95rem;font-size:.72rem;letter-spacing:.09em}
 
-/* MOBILE NAV */
-.mobile-nav{
-  position:fixed;top:72px;left:0;right:0;
-  background:rgba(13,13,13,.97);backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-  padding:2rem clamp(1.5rem,5vw,4rem);
-  display:flex;flex-direction:column;gap:1.5rem;
-  transform:translateY(-110%) scaleY(.95);transform-origin:top center;
-  transition:transform .4s var(--ease-out-expo),opacity .3s;
-  opacity:0;z-index:99;
+/* burger */
+.burger{display:none;flex-direction:column;gap:5px;background:none;border:none;padding:6px;-webkit-tap-highlight-color:transparent}
+.burger span{display:block;width:22px;height:1.5px;background:var(--text);transition:all .35s var(--expo)}
+.burger.open span:nth-child(1){transform:rotate(45deg) translate(4px,4px)}
+.burger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.burger.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
+
+/* mobile nav */
+.mob-nav{
+  position:fixed;top:70px;left:0;right:0;z-index:490;
+  background:rgba(8,8,8,.98);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);padding:1.8rem clamp(1.5rem,5vw,4rem);
+  display:flex;flex-direction:column;gap:1.4rem;
+  transform:translateY(-104%);opacity:0;pointer-events:none;
+  transition:transform .4s var(--expo),opacity .3s;
 }
-.mobile-nav.open{transform:translateY(0) scaleY(1);opacity:1}
-.mobile-nav a{font-size:1.1rem;color:var(--text-muted);text-decoration:none;transition:color .2s}
-.mobile-nav a:hover{color:var(--gold)}
+.mob-nav.open{transform:none;opacity:1;pointer-events:all}
+.mob-nav a{font-size:1rem;color:var(--text-muted);text-decoration:none;transition:color .2s}
+.mob-nav a:active{color:var(--gold)}
 
-/* ════════════════════════════════════════
-   HERO
-════════════════════════════════════════ */
+/* ══ HERO ══ */
 #hero{
-  min-height:100vh;display:flex;align-items:center;
-  padding:100px clamp(1.5rem,5vw,4rem) 4rem;
-  position:relative;overflow:hidden;z-index:1;
+  min-height:100svh;display:flex;align-items:center;
+  padding:100px clamp(1.5rem,5vw,4rem) 5rem;
+  position:relative;overflow:hidden;z-index:2;
 }
-/* animated gradient orb */
-.hero-orb{
-  position:absolute;width:700px;height:700px;border-radius:50%;
-  background:radial-gradient(circle,rgba(201,168,76,.12) 0%,transparent 70%);
-  right:-200px;top:50%;transform:translateY(-50%);
-  animation:orbFloat 8s ease-in-out infinite;pointer-events:none;
-  filter:blur(40px);
-}
-@keyframes orbFloat{
-  0%,100%{transform:translateY(-50%) scale(1)}
-  50%{transform:translateY(-55%) scale(1.05)}
-}
+/* ambient glow orbs */
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(60px)}
+.orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(201,168,76,.1),transparent 70%);right:-150px;top:40%;transform:translateY(-50%);animation:orbA 10s ease-in-out infinite}
+.orb-2{width:300px;height:300px;background:radial-gradient(circle,rgba(201,168,76,.06),transparent 70%);left:-80px;bottom:10%;animation:orbB 14s ease-in-out infinite}
+@keyframes orbA{0%,100%{transform:translateY(-50%) scale(1)}50%{transform:translateY(-54%) scale(1.07)}}
+@keyframes orbB{0%,100%{transform:scale(1)}50%{transform:scale(1.15) translateX(20px)}}
+
+/* hero chess board */
 .hero-board{
-  position:absolute;right:-60px;top:50%;transform:translateY(-50%);
-  width:min(55vw,660px);opacity:.14;pointer-events:none;
-  font-size:clamp(55px,7.5vw,112px);line-height:1;
-  display:grid;grid-template-columns:repeat(8,1fr);filter:blur(.3px);
-  animation:boardDrift 12s ease-in-out infinite;
-}
-@keyframes boardDrift{
-  0%,100%{transform:translateY(-50%) rotate(0deg)}
-  33%{transform:translateY(-52%) rotate(.4deg)}
-  66%{transform:translateY(-48%) rotate(-.3deg)}
+  position:absolute;right:-50px;top:50%;transform:translateY(-50%);
+  width:min(52vw,640px);opacity:.12;pointer-events:none;
+  font-size:clamp(50px,7vw,108px);line-height:1;
+  display:grid;grid-template-columns:repeat(8,1fr);
 }
 .hero-board .sq{aspect-ratio:1;display:flex;align-items:center;justify-content:center}
-.hero-board .sq.d{background:rgba(201,168,76,.1)}
-.hero-content{position:relative;z-index:2;max-width:640px}
+.hero-board .sq.d{background:rgba(201,168,76,.08)}
+.hero-content{position:relative;z-index:3;max-width:660px}
 
+/* eyebrow tag */
 .hero-tag{
   display:inline-flex;align-items:center;gap:.6rem;
-  border:1px solid var(--border);padding:.35rem 1rem;border-radius:100px;
-  font-size:.75rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);
-  margin-bottom:2rem;opacity:0;animation:fadeUp .6s .1s var(--ease-out-expo) forwards;
-  background:rgba(201,168,76,.04);backdrop-filter:blur(8px);
+  padding:.35rem 1.1rem;border-radius:100px;
+  border:1px solid var(--border);background:rgba(201,168,76,.04);
+  font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);
+  margin-bottom:2rem;opacity:0;animation:up .6s .1s var(--expo) forwards;
 }
-.hero-tag::before{content:'♟';animation:pieceBob 2s ease-in-out infinite}
-@keyframes pieceBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.hero-tag i{font-style:normal;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:none}50%{transform:translateY(-3px)}}
 
 h1{
-  font-family:var(--serif);font-size:clamp(3rem,6.5vw,6rem);font-weight:700;
-  line-height:1.02;letter-spacing:-.02em;margin-bottom:1.5rem;
-  opacity:0;animation:fadeUp .8s .25s var(--ease-out-expo) forwards;
+  font-family:var(--serif);font-size:clamp(2.8rem,6vw,6rem);
+  font-weight:700;line-height:1.0;letter-spacing:-.02em;margin-bottom:1.6rem;
+  opacity:0;animation:up .8s .22s var(--expo) forwards;
 }
-h1 em{
-  color:var(--gold);font-style:normal;
-  background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold));
-  background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;animation:shimmerText 4s linear infinite;
+/* gold shimmer gradient text */
+.gold-text{
+  background:linear-gradient(95deg,var(--gold) 0%,var(--gold-pale) 40%,var(--gold) 70%,var(--gold-light) 100%);
+  background-size:300% 100%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;animation:shimmer 5s linear infinite;
 }
-@keyframes shimmerText{0%{background-position:200% center}100%{background-position:-200% center}}
+@keyframes shimmer{0%{background-position:100%}100%{background-position:-200%}}
 
 .hero-sub{
-  font-size:1.05rem;color:var(--text-muted);max-width:480px;
-  margin-bottom:2.5rem;opacity:0;animation:fadeUp .8s .4s var(--ease-out-expo) forwards;
-  line-height:1.75;
+  font-size:1rem;color:var(--text-soft);max-width:500px;margin-bottom:2.5rem;line-height:1.8;
+  opacity:0;animation:up .8s .38s var(--expo) forwards;
 }
-.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;opacity:0;animation:fadeUp .8s .55s var(--ease-out-expo) forwards}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;opacity:0;animation:up .8s .52s var(--expo) forwards}
 .hero-stats{
-  display:flex;gap:2.5rem;margin-top:4rem;padding-top:2rem;
-  border-top:1px solid var(--border);
-  opacity:0;animation:fadeUp .8s .7s var(--ease-out-expo) forwards;flex-wrap:wrap;
+  display:flex;gap:3rem;flex-wrap:wrap;
+  margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border);
+  opacity:0;animation:up .8s .68s var(--expo) forwards;
 }
-.stat-num{
-  font-family:var(--serif);font-size:2.2rem;font-weight:600;color:var(--gold);
-  line-height:1;
-}
-.stat-label{font-size:.73rem;color:var(--text-muted);letter-spacing:.07em;text-transform:uppercase;margin-top:.2rem}
+.stat-n{font-family:var(--serif);font-size:2.4rem;font-weight:600;color:var(--gold);line-height:1}
+.stat-l{font-size:.68rem;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-top:.2rem}
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
-
-/* scroll indicator */
-.scroll-hint{
+.scroll-cue{
   position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
   display:flex;flex-direction:column;align-items:center;gap:.5rem;
-  color:var(--text-muted);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;
-  opacity:0;animation:fadeUp .8s 1.2s var(--ease-out-expo) forwards;
+  color:var(--text-muted);font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;
+  pointer-events:none;opacity:0;animation:up .6s 1.4s var(--expo) forwards;
 }
-.scroll-hint-line{
-  width:1px;height:40px;background:linear-gradient(var(--gold),transparent);
-  animation:scrollLine 2s ease-in-out infinite;
-}
-@keyframes scrollLine{0%,100%{transform:scaleY(1);opacity:1}50%{transform:scaleY(.5);opacity:.4}}
+.scroll-line{width:1px;height:36px;background:linear-gradient(var(--gold),transparent);animation:scl 2.4s ease-in-out infinite}
+@keyframes scl{0%,100%{transform:scaleY(1);opacity:.7}55%{transform:scaleY(.35);opacity:.2}}
+@keyframes up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 
-/* ════════════════════════════════════════
-   SECTIONS COMMON
-════════════════════════════════════════ */
-section{padding:clamp(5rem,9vw,8rem) clamp(1.5rem,5vw,4rem);position:relative;z-index:1}
-.section-label{font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
-.section-title{font-family:var(--serif);font-size:clamp(2.2rem,4.5vw,3.5rem);font-weight:700;line-height:1.08;margin-bottom:1rem}
-.section-sub{color:var(--text-muted);max-width:540px;margin-bottom:3.5rem;line-height:1.75}
+/* ══ SECTIONS ══ */
+section{padding:clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem);position:relative;z-index:2}
+.s-label{font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
+.s-title{font-family:var(--serif);font-size:clamp(2rem,4.5vw,3.4rem);font-weight:700;line-height:1.06;margin-bottom:.9rem}
+.s-sub{color:var(--text-muted);max-width:540px;margin-bottom:3.5rem;line-height:1.75}
 
-/* stagger children */
-.stagger > *{
-  opacity:0;transform:translateY(24px);
-  transition:opacity .65s var(--ease-out-expo),transform .65s var(--ease-out-expo);
-}
-.stagger.visible > *:nth-child(1){opacity:1;transform:none;transition-delay:.05s}
-.stagger.visible > *:nth-child(2){opacity:1;transform:none;transition-delay:.12s}
-.stagger.visible > *:nth-child(3){opacity:1;transform:none;transition-delay:.19s}
-.stagger.visible > *:nth-child(4){opacity:1;transform:none;transition-delay:.26s}
-.stagger.visible > *:nth-child(5){opacity:1;transform:none;transition-delay:.33s}
-.stagger.visible > *:nth-child(6){opacity:1;transform:none;transition-delay:.40s}
-.stagger.visible > *:nth-child(7){opacity:1;transform:none;transition-delay:.47s}
-.stagger.visible > *:nth-child(8){opacity:1;transform:none;transition-delay:.54s}
+/* ══ REVEAL / STAGGER ══ */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s var(--expo),transform .7s var(--expo)}
+.reveal.in{opacity:1;transform:none}
+.stagger>*{opacity:0;transform:translateY(20px);transition:opacity .6s var(--expo),transform .6s var(--expo)}
+.stagger.in>*:nth-child(1){opacity:1;transform:none;transition-delay:.04s}
+.stagger.in>*:nth-child(2){opacity:1;transform:none;transition-delay:.10s}
+.stagger.in>*:nth-child(3){opacity:1;transform:none;transition-delay:.16s}
+.stagger.in>*:nth-child(4){opacity:1;transform:none;transition-delay:.22s}
+.stagger.in>*:nth-child(5){opacity:1;transform:none;transition-delay:.28s}
+.stagger.in>*:nth-child(6){opacity:1;transform:none;transition-delay:.34s}
 
-.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s var(--ease-out-expo),transform .7s var(--ease-out-expo)}
-.reveal.visible{opacity:1;transform:none}
-
-/* ════════════════════════════════════════
-   ABOUT / ADVANTAGES
-════════════════════════════════════════ */
+/* ══ ABOUT ══ */
 #about{background:var(--surface)}
-.advantages-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:1.5px;background:var(--border);border:1px solid var(--border);margin-top:1rem;
+.adv-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));
+  gap:1.5px;background:var(--border);border:1px solid var(--border);
 }
 .adv-card{
   background:var(--surface);padding:2.5rem 2rem;
-  transition:background .3s,transform .3s var(--ease-out-expo);
-  position:relative;overflow:hidden;
+  position:relative;overflow:hidden;transition:background .3s;
 }
-.adv-card::before{
-  content:'';position:absolute;bottom:0;left:0;width:0;height:2px;
-  background:linear-gradient(90deg,var(--gold),var(--gold-light));
-  transition:width .45s var(--ease-out-expo);
-}
-.adv-card::after{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(201,168,76,.06) 0%,transparent 60%);
-  opacity:0;transition:opacity .3s;pointer-events:none;
-}
-.adv-card:hover{background:var(--surface2);transform:translateY(-3px)}
+.adv-card::before{content:'';position:absolute;bottom:0;left:0;width:0;height:1.5px;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width .45s var(--expo)}
+.adv-card::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(201,168,76,.06) 0%,transparent 55%);opacity:0;transition:opacity .35s;pointer-events:none}
+.adv-card:hover{background:var(--surface2)}
 .adv-card:hover::before{width:100%}
 .adv-card:hover::after{opacity:1}
-.adv-icon{
-  font-size:2.2rem;margin-bottom:1.4rem;display:block;
-  filter:drop-shadow(0 0 12px rgba(201,168,76,.3));
-  transition:transform .3s var(--ease-out-expo);
-}
-.adv-card:hover .adv-icon{transform:scale(1.15) rotate(-5deg)}
-.adv-title{font-family:var(--serif);font-size:1.3rem;font-weight:600;margin-bottom:.6rem}
-.adv-desc{font-size:.88rem;color:var(--text-muted);line-height:1.75}
+.adv-icon{font-size:2rem;margin-bottom:1.3rem;display:block;filter:drop-shadow(0 0 8px rgba(201,168,76,.2));transition:transform .35s var(--expo)}
+.adv-card:hover .adv-icon{transform:scale(1.18) rotate(-5deg)}
+.adv-title{font-family:var(--serif);font-size:1.25rem;font-weight:600;margin-bottom:.55rem}
+.adv-desc{font-size:.86rem;color:var(--text-muted);line-height:1.75}
 
-/* ════════════════════════════════════════
-   PROGRAMS
-════════════════════════════════════════ */
-.prog-tabs{
-  display:flex;border:1px solid var(--border);
-  width:fit-content;margin-bottom:3rem;
-  border-radius:var(--radius);overflow:hidden;flex-wrap:wrap;
-}
-.prog-tab{
-  padding:.65rem 1.6rem;font-size:.82rem;font-weight:500;
-  letter-spacing:.07em;text-transform:uppercase;
-  cursor:pointer;background:transparent;color:var(--text-muted);
-  border:none;transition:all .3s var(--ease-out-expo);font-family:var(--sans);
-  position:relative;
-}
-@media(pointer:fine){.prog-tab{cursor:none}}
-.prog-tab.active{background:var(--gold);color:#0d0d0d}
+/* ══ PROGRAMS ══ */
+.prog-tabs{display:flex;border:1px solid var(--border);width:fit-content;margin-bottom:3rem;border-radius:var(--radius);overflow:hidden;flex-wrap:wrap}
+.prog-tab{padding:.62rem 1.5rem;font-size:.78rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;background:transparent;color:var(--text-muted);border:none;font-family:var(--sans);transition:all .3s var(--expo);-webkit-tap-highlight-color:transparent}
+.prog-tab.on{background:var(--gold);color:#000}
 .prog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
+.prog-panel{display:none}
+.prog-panel.on{display:block;animation:panIn .4s var(--expo)}
+@keyframes panIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .prog-card{
   background:var(--surface);border:1px solid var(--border);
   padding:2.5rem 2rem;border-radius:var(--radius);
-  transition:border-color .3s,transform .3s var(--ease-out-expo),box-shadow .3s;
   position:relative;overflow:hidden;
+  transition:border-color .3s,transform .35s var(--expo),box-shadow .35s;
+  display:flex;flex-direction:column;
 }
-.prog-card::after{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--gold),transparent);
-  transform:translateX(-100%);transition:transform .5s var(--ease-out-expo);
-}
-.prog-card:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.4)}
-.prog-card:hover::after{transform:translateX(0)}
-.prog-badge{display:inline-block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .8rem;border:1px solid var(--border);color:var(--text-muted);border-radius:100px;margin-bottom:1.5rem}
-.prog-name{font-family:var(--serif);font-size:1.5rem;font-weight:600;margin-bottom:.8rem}
-.prog-desc{font-size:.88rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75}
-.prog-meta{display:flex;flex-direction:column;gap:.5rem}
-.prog-meta span{font-size:.8rem;color:var(--text-muted)}
-.prog-meta span strong{color:var(--text);font-weight:400}
-.prog-panel{display:none;animation:panelIn .4s var(--ease-out-expo)}
-.prog-panel.active{display:block}
-@keyframes panelIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.prog-card::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:translateX(-101%);transition:transform .55s var(--expo)}
+.prog-card:hover{border-color:rgba(201,168,76,.4);box-shadow:0 20px 60px rgba(0,0,0,.5),var(--glow)}
+.prog-card:hover::after{transform:none}
+.prog-badge{display:inline-block;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;padding:.22rem .8rem;border:1px solid var(--border);color:var(--text-muted);border-radius:100px;margin-bottom:1.4rem;width:fit-content}
+.prog-name{font-family:var(--serif);font-size:1.5rem;font-weight:600;margin-bottom:.7rem}
+.prog-desc{font-size:.86rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.75;flex:1}
+.prog-meta{display:flex;flex-direction:column;gap:.45rem;margin-bottom:1.8rem}
+.prog-meta span{font-size:.78rem;color:var(--text-muted)}
+.prog-meta strong{color:var(--text-soft);font-weight:400}
 
-/* ════════════════════════════════════════
-   PRICES
-════════════════════════════════════════ */
+/* ══ PRICES ══ */
 #prices{background:var(--surface)}
 .prices-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;align-items:start}
 .price-card{
   background:var(--bg);border:1px solid var(--border);
   padding:2.5rem 2rem;border-radius:var(--radius);
-  position:relative;transition:all .35s var(--ease-out-expo);
-  overflow:hidden;
-}
-.price-card::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at 50% 0%,rgba(201,168,76,.07) 0%,transparent 60%);
-  opacity:0;transition:opacity .3s;
-}
-.price-card:hover{border-color:var(--gold);transform:translateY(-6px);box-shadow:0 24px 60px rgba(0,0,0,.5)}
-.price-card:hover::before{opacity:1}
-.price-card.popular{background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.05));border-color:var(--gold)}
-.popular-badge{
-  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
-  background:linear-gradient(90deg,var(--gold),var(--gold-light));
-  color:#0d0d0d;font-size:.68rem;font-weight:500;letter-spacing:.1em;
-  text-transform:uppercase;padding:.2rem 1rem;border-radius:100px;white-space:nowrap;
-}
-.price-name{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.2rem}
-.price-amount{font-family:var(--serif);font-size:3rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:.3rem}
-.price-period{font-size:.8rem;color:var(--text-muted);margin-bottom:1.8rem}
-.price-features{list-style:none;margin-bottom:2rem;display:flex;flex-direction:column;gap:.75rem}
-.price-features li{font-size:.88rem;color:var(--text-muted);display:flex;gap:.6rem;align-items:flex-start}
-.price-features li::before{content:'—';color:var(--gold);flex-shrink:0;margin-top:.05em}
-
-/* ════════════════════════════════════════
-   SCHEDULE
-════════════════════════════════════════ */
-.schedule-table{width:100%;border-collapse:collapse;border:1px solid var(--border)}
-.schedule-table th{background:var(--surface);padding:1rem 1.2rem;font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);text-align:left;font-weight:400}
-.schedule-table td{padding:1rem 1.2rem;font-size:.88rem;border-top:1px solid var(--border);color:var(--text-muted);transition:color .2s,background .2s}
-.schedule-table tr:hover td{background:var(--surface);color:var(--text)}
-.tag-group{display:inline-block;padding:.2rem .7rem;border:1px solid var(--border);font-size:.72rem;border-radius:100px;letter-spacing:.06em}
-.tag-online{border-color:rgba(201,168,76,.4);color:var(--gold)}
-
-/* ════════════════════════════════════════
-   REVIEWS
-════════════════════════════════════════ */
-#reviews{background:var(--surface)}
-.reviews-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
-.review-card{
-  background:var(--bg);border:1px solid var(--border);
-  padding:2rem;border-radius:var(--radius);
   position:relative;overflow:hidden;
-  transition:border-color .3s,transform .3s var(--ease-out-expo),box-shadow .3s;
+  transition:border-color .35s,transform .35s var(--expo),box-shadow .35s;
 }
-.review-card:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,.4)}
-.review-stars{color:var(--gold);font-size:.9rem;margin-bottom:1rem;letter-spacing:.1em}
-.review-text{font-size:.9rem;color:var(--text-muted);line-height:1.8;margin-bottom:1.5rem;font-style:italic}
-.review-author{font-size:.82rem;color:var(--text);font-weight:500}
-.review-role{font-size:.75rem;color:var(--text-muted)}
-.quote-mark{position:absolute;top:1.2rem;right:1.5rem;font-size:5rem;color:rgba(201,168,76,.08);font-family:var(--serif);line-height:1;pointer-events:none;font-style:normal}
+.price-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(201,168,76,.07),transparent 55%);opacity:0;transition:opacity .35s;pointer-events:none}
+.price-card:hover{border-color:rgba(201,168,76,.45);transform:translateY(-6px);box-shadow:0 24px 64px rgba(0,0,0,.5),var(--glow)}
+.price-card:hover::before{opacity:1}
+.price-card.popular{background:linear-gradient(150deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border-color:var(--gold)}
+.pop-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),var(--gold-light));color:#000;font-size:.65rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:.2rem 1rem;border-radius:100px;white-space:nowrap}
+.price-name{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.2rem}
+.price-amt{font-family:var(--serif);font-size:2.8rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:.25rem}
+.price-per{font-size:.76rem;color:var(--text-muted);margin-bottom:1.8rem}
+.price-feat{list-style:none;margin-bottom:2rem;display:flex;flex-direction:column;gap:.7rem}
+.price-feat li{font-size:.85rem;color:var(--text-muted);display:flex;gap:.6rem}
+.price-feat li::before{content:'—';color:var(--gold);flex-shrink:0}
 
-/* ════════════════════════════════════════
-   FORM
-════════════════════════════════════════ */
+/* ══ SCHEDULE ══ */
+.sched-table{width:100%;border-collapse:collapse;border:1px solid var(--border)}
+.sched-table th{background:var(--surface);padding:.9rem 1.1rem;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);text-align:left;font-weight:400}
+.sched-table td{padding:.9rem 1.1rem;font-size:.85rem;border-top:1px solid var(--border);color:var(--text-muted);transition:color .2s,background .2s;vertical-align:middle}
+.sched-table tr:hover td{background:rgba(201,168,76,.03);color:var(--text)}
+.tag{display:inline-block;padding:.18rem .7rem;border:1px solid var(--border);font-size:.7rem;border-radius:100px;letter-spacing:.05em}
+.tag-on{border-color:rgba(201,168,76,.35);color:var(--gold)}
+
+/* ══ REVIEWS ══ */
+#reviews{background:var(--surface)}
+.rev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
+.rev-card{
+  background:var(--bg);border:1px solid var(--border);
+  padding:2.2rem;border-radius:var(--radius);position:relative;overflow:hidden;
+  transition:border-color .3s,transform .3s var(--expo),box-shadow .3s;
+}
+.rev-card:hover{border-color:rgba(201,168,76,.4);transform:translateY(-4px);box-shadow:0 18px 50px rgba(0,0,0,.4)}
+.rev-stars{color:var(--gold);font-size:.85rem;margin-bottom:.9rem;letter-spacing:.1em}
+.rev-text{font-size:.88rem;color:var(--text-muted);line-height:1.8;margin-bottom:1.4rem;font-style:italic}
+.rev-author{font-size:.8rem;color:var(--text);font-weight:500}
+.rev-role{font-size:.72rem;color:var(--text-muted)}
+.rev-q{position:absolute;top:.8rem;right:1.2rem;font-size:5rem;color:rgba(201,168,76,.06);font-family:var(--serif);line-height:1;pointer-events:none}
+
+/* ══ FORM SECTION ══ */
 #form-section{background:var(--bg);position:relative;overflow:hidden}
-#form-section::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 70% 70% at 50% 110%,rgba(201,168,76,.08) 0%,transparent 70%);
-  pointer-events:none;
-}
+#form-section::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 55% at 50% 110%,rgba(201,168,76,.07),transparent 70%);pointer-events:none}
 .form-wrap{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
-.form-points{display:flex;flex-direction:column;gap:1rem}
-.form-point{display:flex;align-items:flex-start;gap:.8rem;font-size:.9rem;color:var(--text-muted);line-height:1.6}
-.form-point::before{content:'♙';color:var(--gold);flex-shrink:0;margin-top:.1em;transition:transform .3s}
-.form-point:hover::before{transform:translateY(-3px)}
-.contact-form{background:var(--surface);border:1px solid var(--border);padding:3rem;border-radius:var(--radius);position:relative;overflow:hidden}
-.contact-form::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--gold),transparent);
-}
-.form-title{font-family:var(--serif);font-size:1.7rem;font-weight:600;margin-bottom:2rem}
-.form-group{margin-bottom:1.2rem;position:relative}
-.form-group label{display:block;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.5rem;transition:color .2s}
-.form-group:focus-within label{color:var(--gold)}
-.form-group input,.form-group select{
-  width:100%;background:rgba(13,13,13,.8);border:1px solid var(--border);
-  color:var(--text);padding:.9rem 1rem;font-family:var(--sans);font-size:.95rem;
-  border-radius:var(--radius);outline:none;transition:border-color .25s,box-shadow .25s;
-}
-.form-group input:focus,.form-group select:focus{
-  border-color:var(--gold);
-  box-shadow:0 0 0 3px rgba(201,168,76,.1);
-}
-.form-group input::placeholder{color:var(--text-muted)}
-.form-group select option{background:var(--surface)}
-.form-error{font-size:.74rem;color:#e07070;margin-top:.3rem;display:none}
-.form-error.show{display:block;animation:shake .3s ease}
-@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.form-submit{width:100%;margin-top:1.5rem;padding:1rem;font-size:.9rem}
-.form-note{font-size:.73rem;color:var(--text-muted);margin-top:1rem;text-align:center}
-.form-success{display:none;text-align:center;padding:2.5rem 2rem}
-.form-success .success-icon{font-size:3.5rem;margin-bottom:1rem;animation:successPop .5s var(--ease-out-expo)}
-@keyframes successPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-.form-success h3{font-family:var(--serif);font-size:1.6rem;margin-bottom:.6rem}
-.form-success p{color:var(--text-muted);font-size:.9rem}
-
-/* ════════════════════════════════════════
-   CONTACTS
-════════════════════════════════════════ */
-#contacts{background:var(--surface)}
-.contacts-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start}
-.contact-item{display:flex;flex-direction:column;gap:.3rem;margin-bottom:2rem}
-.contact-label{font-size:.7rem;letter-spacing:.17em;text-transform:uppercase;color:var(--gold)}
-.contact-value{font-size:1rem;color:var(--text);line-height:1.7}
-.contact-value a{color:var(--text);text-decoration:none;transition:color .2s}
-.contact-value a:hover{color:var(--gold)}
-.map-placeholder{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);height:290px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.88rem;position:relative;overflow:hidden}
-.map-placeholder::before{content:'♟';position:absolute;font-size:10rem;opacity:.04;color:var(--gold)}
-
-/* ════════════════════════════════════════
-   FOOTER
-════════════════════════════════════════ */
-footer{border-top:1px solid var(--border);padding:2.5rem clamp(1.5rem,5vw,4rem);display:flex;flex-wrap:wrap;gap:1.5rem;align-items:center;justify-content:space-between;position:relative;z-index:1}
-.footer-copy{font-size:.78rem;color:var(--text-muted)}
-.footer-nav{display:flex;gap:1.5rem;flex-wrap:wrap}
-.footer-nav a{font-size:.78rem;color:var(--text-muted);text-decoration:none;transition:color .2s}
-.footer-nav a:hover{color:var(--gold)}
-
-/* ════════════════════════════════════════
-   TOUCH & ACCESSIBILITY IMPROVEMENTS
-════════════════════════════════════════ */
-/* Remove tap highlight on mobile */
-a,button{-webkit-tap-highlight-color:transparent}
-
-/* Safe area insets for notched phones */
-@supports(padding:max(0px)){
-  header{padding-left:max(clamp(1.5rem,5vw,4rem),env(safe-area-inset-left));
-         padding-right:max(clamp(1.5rem,5vw,4rem),env(safe-area-inset-right))}
-  @media(max-width:600px){
-    #hero,section{
-      padding-left:max(1.2rem,env(safe-area-inset-left));
-      padding-right:max(1.2rem,env(safe-area-inset-right));
-    }
-    footer{
-      padding-left:max(1.2rem,env(safe-area-inset-left));
-      padding-right:max(1.2rem,env(safe-area-inset-right));
-      padding-bottom:max(2rem,env(safe-area-inset-bottom));
-    }
-    .modal-overlay{
-      padding-bottom:max(.75rem,env(safe-area-inset-bottom));
-    }
-  }
-}
-
-/* Focus visible for keyboard nav */
-:focus-visible{
-  outline:2px solid var(--gold);
-  outline-offset:3px;
-  border-radius:var(--radius);
-}
-button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
-
-/* Minimum touch target size */
-@media(pointer:coarse){
-  .prog-tab{min-height:44px}
-  .burger{min-width:44px;min-height:44px;align-items:center;justify-content:center}
-  nav .btn-primary,
-  .modal-close{min-height:44px;min-width:44px}
-}
-
-/* ════════════════════════════════════════
-   MODAL
-════════════════════════════════════════ */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0);backdrop-filter:blur(0px);
-  z-index:200;display:flex;align-items:center;justify-content:center;padding:1.5rem;
-  pointer-events:none;transition:background .35s,backdrop-filter .35s;
-}
-.modal-overlay.open{background:rgba(0,0,0,.8);backdrop-filter:blur(12px);pointer-events:all}
-.modal{
+.form-pts{display:flex;flex-direction:column;gap:1rem}
+.form-pt{display:flex;align-items:flex-start;gap:.8rem;font-size:.88rem;color:var(--text-muted);line-height:1.6}
+.form-pt::before{content:'♙';color:var(--gold);flex-shrink:0;transition:transform .3s}
+.form-pt:hover::before{transform:translateY(-3px)}
+.fbox{
   background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:3rem;max-width:480px;width:100%;
-  position:relative;
-  transform:translateY(30px) scale(.96);opacity:0;
-  transition:transform .45s var(--ease-out-expo),opacity .35s;
-  max-height:92vh;overflow-y:auto;
+  padding:3rem;border-radius:var(--radius-lg);position:relative;overflow:hidden;
 }
-.modal-overlay.open .modal{transform:translateY(0) scale(1);opacity:1}
-.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;transition:color .2s,transform .2s}
-@media(pointer:fine){.modal-close{cursor:none}}
+/* top glow line */
+.fbox::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.ftitle{font-family:var(--serif);font-size:1.6rem;font-weight:600;margin-bottom:.4rem}
+.fsub{font-size:.82rem;color:var(--text-muted);margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+/* selected service badge */
+.service-badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:var(--gold-dim);border:1px solid var(--border-strong);
+  padding:.35rem 1rem;border-radius:100px;
+  font-size:.75rem;color:var(--gold);letter-spacing:.07em;
+  margin-bottom:1.5rem;
+}
+.service-badge::before{content:'♟'}
+.fg{margin-bottom:1.1rem}
+.fg label{display:block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.45rem;transition:color .25s}
+.fg:focus-within label{color:var(--gold)}
+.fg input,.fg select,.fg textarea{
+  width:100%;background:rgba(8,8,8,.8);border:1px solid var(--border);
+  color:var(--text);padding:.85rem 1rem;font-family:var(--sans);font-size:.9rem;
+  border-radius:var(--radius);outline:none;
+  transition:border-color .25s,box-shadow .25s;
+  -webkit-appearance:none;appearance:none;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1)}
+.fg input::placeholder,.fg textarea::placeholder{color:var(--text-muted)}
+.fg select option{background:var(--surface2)}
+.fg textarea{resize:vertical;min-height:80px;line-height:1.5}
+.ferr{font-size:.72rem;color:#d97070;margin-top:.3rem;display:none}
+.ferr.on{display:block;animation:shake .28s ease}
+@keyframes shake{0%,100%{transform:none}30%{transform:translateX(-4px)}70%{transform:translateX(4px)}}
+.fsubmit{width:100%;margin-top:1.4rem;padding:1rem;font-size:.85rem;letter-spacing:.12em}
+.fnote{font-size:.7rem;color:var(--text-muted);margin-top:.9rem;text-align:center}
+.fsuccess{display:none;text-align:center;padding:3rem 1.5rem}
+.fsuccess .icon{font-size:3.5rem;display:block;margin-bottom:1rem;animation:pop .5s var(--expo)}
+@keyframes pop{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.fsuccess h3{font-family:var(--serif);font-size:1.7rem;margin-bottom:.6rem}
+.fsuccess p{font-size:.88rem;color:var(--text-muted)}
+
+/* ══ CONTACTS ══ */
+#contacts{background:var(--surface)}
+.ct-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start}
+.ct-item{margin-bottom:1.8rem}
+.ct-label{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem}
+.ct-val{font-size:.95rem;color:var(--text);line-height:1.7}
+.ct-val a{color:var(--text);text-decoration:none;transition:color .2s}
+.ct-val a:hover{color:var(--gold)}
+.map-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);height:280px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.85rem;position:relative;overflow:hidden}
+.map-box::before{content:'♟';position:absolute;font-size:9rem;opacity:.04;color:var(--gold);pointer-events:none}
+
+/* ══ FOOTER ══ */
+footer{border-top:1px solid var(--border);padding:2.5rem clamp(1.5rem,5vw,4rem);display:flex;flex-wrap:wrap;gap:1.5rem;align-items:center;justify-content:space-between;z-index:2;position:relative}
+.fc{font-size:.76rem;color:var(--text-muted)}
+.fn{display:flex;gap:1.5rem;flex-wrap:wrap}
+.fn a{font-size:.76rem;color:var(--text-muted);text-decoration:none;transition:color .2s}
+.fn a:hover{color:var(--gold)}
+
+/* ══ SMART MODAL ══ */
+.modal-overlay{
+  position:fixed;inset:0;z-index:600;
+  display:flex;align-items:center;justify-content:center;padding:1.5rem;
+  background:rgba(0,0,0,0);pointer-events:none;
+  transition:background .35s;
+}
+.modal-overlay::before{content:'';position:absolute;inset:0;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);opacity:0;transition:opacity .35s;pointer-events:none}
+.modal-overlay.open{background:rgba(0,0,0,.78);pointer-events:all}
+.modal-overlay.open::before{opacity:1}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:2.8rem;max-width:500px;width:100%;
+  position:relative;z-index:1;
+  transform:translateY(30px) scale(.94);opacity:0;
+  transition:transform .45s var(--expo),opacity .38s;
+  max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.modal-overlay.open .modal-box{transform:none;opacity:1}
+.modal-box::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-muted);font-size:1.1rem;padding:.4rem;transition:color .2s,transform .25s var(--expo);-webkit-tap-highlight-color:transparent}
 .modal-close:hover{color:var(--text);transform:rotate(90deg)}
+.modal-service-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--gold-dim);border:1px solid var(--border-strong);padding:.32rem .95rem;border-radius:100px;font-size:.72rem;color:var(--gold);letter-spacing:.07em;margin-bottom:1.5rem}
+.modal-service-badge::before{content:'♟'}
 
-/* ════════════════════════════════════════
-   RESPONSIVE — TABLET & MOBILE
-════════════════════════════════════════ */
+/* ══ TOUCH RIPPLE ══ */
+@keyframes ripple{0%{transform:scale(0);opacity:.35}100%{transform:scale(5);opacity:0}}
+.rip{position:absolute;border-radius:50%;width:50px;height:50px;margin:-25px;background:rgba(201,168,76,.3);animation:ripple .55s var(--expo) forwards;pointer-events:none}
 
-/* TABLET: 961px – 1280px */
-@media(max-width:1280px){
-  .form-wrap{gap:3rem}
-  .hero-board{width:min(50vw,560px)}
-}
-
-/* TABLET: up to 960px */
+/* ══ RESPONSIVE ══ */
 @media(max-width:960px){
-  nav a{display:none}
-  nav .btn-primary{display:none}
+  nav > a{display:none}
   .burger{display:flex}
   .form-wrap{grid-template-columns:1fr;gap:2.5rem}
-  .contacts-grid{grid-template-columns:1fr;gap:2rem}
+  .ct-grid{grid-template-columns:1fr;gap:2rem}
   .hero-board{display:none}
-  .hero-orb{width:500px;height:500px;right:-150px}
-  section{padding:clamp(3.5rem,7vw,6rem) clamp(1.5rem,5vw,4rem)}
-  .advantages-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-  .prices-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .orb-1{right:-250px}
 }
-
-/* MOBILE: up to 600px */
-@media(max-width:600px){
-  /* Header */
-  header{height:60px;padding:0 1.2rem}
-  .mobile-nav{top:60px;padding:1.5rem 1.2rem;gap:1.2rem}
-  .mobile-nav a{font-size:1rem}
-  .logo{font-size:1.2rem}
-
-  /* Hero */
-  #hero{padding:80px 1.2rem 3rem;min-height:100svh;align-items:flex-start}
-  .hero-content{max-width:100%}
-  .hero-tag{font-size:.68rem;padding:.28rem .8rem;margin-bottom:1.4rem}
-  h1{font-size:clamp(2.2rem,9vw,3rem);margin-bottom:1.2rem}
-  .hero-sub{font-size:.95rem;margin-bottom:2rem;max-width:100%}
-  .hero-btns{flex-direction:column;gap:.75rem}
-  .hero-btns .btn-primary,.hero-btns .btn-outline{width:100%;justify-content:center;padding:.85rem 1.2rem;font-size:.85rem}
-  .hero-stats{gap:1.2rem;margin-top:2.5rem;padding-top:1.5rem;flex-wrap:wrap}
-  .hero-stats > div{min-width:80px}
-  .stat-num{font-size:1.8rem}
-  .stat-label{font-size:.68rem}
-  .scroll-hint{display:none}
-
-  /* Sections */
-  section{padding:3rem 1.2rem}
-  .section-title{font-size:clamp(1.7rem,7vw,2.5rem)}
-  .section-sub{font-size:.9rem;margin-bottom:2.5rem}
-
-  /* About */
-  .advantages-grid{grid-template-columns:1fr;gap:1px}
-  .adv-card{padding:2rem 1.5rem}
-
-  /* Programs */
-  .prog-tabs{width:100%}
-  .prog-tab{flex:1;text-align:center;padding:.6rem .8rem;font-size:.75rem;letter-spacing:.04em}
-  .prog-grid{grid-template-columns:1fr}
-  .prog-card{padding:2rem 1.5rem}
-
-  /* Prices */
+@media(max-width:640px){
+  h1{letter-spacing:-.015em}
   .prices-grid{grid-template-columns:1fr}
-  .price-card{padding:2rem 1.5rem}
-  .popular-badge{font-size:.64rem}
-
-  /* Schedule */
-  .schedule-table{font-size:.8rem}
-  .schedule-table th,.schedule-table td{padding:.7rem .8rem}
-  /* Hide less important columns on very small screens */
-  .schedule-table th:nth-child(4),
-  .schedule-table td:nth-child(4){display:none}
-
-  /* Reviews */
-  .reviews-grid{grid-template-columns:1fr}
-  .review-card{padding:1.5rem}
-
-  /* Form */
-  .contact-form{padding:2rem 1.2rem}
-  .form-title{font-size:1.4rem;margin-bottom:1.5rem}
-  .form-group input,.form-group select{font-size:1rem;padding:.85rem .9rem}/* 16px prevents iOS zoom */
-  .btn-primary.form-submit{font-size:.9rem;padding:1rem}
-
-  /* Modal */
-  .modal-overlay{padding:.75rem;align-items:flex-end}
-  .modal{
-    padding:2rem 1.2rem 2.5rem;
-    border-radius:var(--radius) var(--radius) 0 0;
-    max-width:100%;width:100%;
-    max-height:92svh;
-  }
-  .modal .form-group input,.modal .form-group select{font-size:1rem}
-
-  /* Contacts */
-  .map-placeholder{height:220px}
-  .contact-value{font-size:.95rem}
-
-  /* Footer */
-  footer{flex-direction:column;align-items:flex-start;gap:1rem;padding:2rem 1.2rem}
-  .footer-nav{gap:1rem}
-  .footer-nav a{font-size:.75rem}
-
-  /* Buttons general */
-  .btn-primary,.btn-outline{padding:.75rem 1.4rem;font-size:.8rem}
-  .mag{transform:none!important} /* disable magnetic on touch */
+  .fbox,.modal-box{padding:2rem 1.4rem}
+  .prog-tabs{width:100%}
+  .prog-tab{flex:1;text-align:center;padding:.58rem .6rem;font-size:.72rem}
+  .hero-stats{gap:1.5rem}
+  .hero-cta{flex-direction:column}
+  .hero-cta .btn,.hero-cta .btn-o{justify-content:center}
+  footer{flex-direction:column;align-items:flex-start}
 }
-
-/* Extra small: 375px and under */
-@media(max-width:375px){
-  h1{font-size:2rem}
-  .hero-stats{gap:.9rem}
-  .stat-num{font-size:1.6rem}
-  .prog-tab{font-size:.7rem;padding:.55rem .5rem}
+@media(max-width:500px){
+  .rev-grid,.prog-grid{display:flex;overflow-x:auto;gap:1rem;padding-bottom:1rem;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .rev-grid::-webkit-scrollbar,.prog-grid::-webkit-scrollbar{display:none}
+  .rev-card,.prog-card{flex:0 0 82vw;scroll-snap-align:start}
+  .swipe-hint{display:block}
 }
+.swipe-hint{display:none;text-align:center;font-size:.7rem;color:var(--text-muted);margin-top:.7rem;letter-spacing:.09em}
 </style>
 </head>
 <body>
 
-<!-- PAGE LOADER -->
+<!-- LOADER -->
 <div id="loader">
-  <div class="loader-logo">Combination<span>Chess</span></div>
-  <div class="loader-bar"></div>
+  <div class="ld-logo">Combination<span>Chess</span></div>
+  <div class="ld-track"></div>
 </div>
 
-<!-- CUSTOM CURSOR -->
-<div id="cursor-dot"></div>
-<div id="cursor-ring"></div>
+<!-- CURSOR -->
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
 
-<!-- PARTICLE CANVAS -->
-<canvas id="particle-canvas"></canvas>
+<!-- PARTICLES -->
+<canvas id="pcvs" aria-hidden="true"></canvas>
 
 <!-- ═══ HEADER ═══ -->
-<header id="header">
+<header id="hdr">
   <a href="#" class="logo">Combination<span>Chess</span></a>
   <nav>
     <a href="#about">Про школу</a>
     <a href="#programs">Програми</a>
     <a href="#prices">Ціни</a>
     <a href="#contacts">Контакти</a>
-    <button class="btn-primary" onclick="openModal()">Записатись</button>
+    <button class="btn mag" onclick="openModal()">Записатись</button>
   </nav>
-  <button class="burger" id="burgerBtn" onclick="toggleMenu()" aria-label="Меню">
+  <button class="burger" id="bgr" onclick="toggleMenu()" aria-label="Меню">
     <span></span><span></span><span></span>
   </button>
 </header>
-
-<div class="mobile-nav" id="mobileNav">
+<div class="mob-nav" id="mnav">
   <a href="#about" onclick="closeMenu()">Про школу</a>
   <a href="#programs" onclick="closeMenu()">Програми</a>
   <a href="#prices" onclick="closeMenu()">Ціни</a>
   <a href="#schedule" onclick="closeMenu()">Розклад</a>
   <a href="#contacts" onclick="closeMenu()">Контакти</a>
-  <button class="btn-primary" style="width:fit-content" onclick="openModal();closeMenu()">Записатись</button>
+  <button class="btn" style="width:fit-content" onclick="openModal();closeMenu()">Записатись</button>
 </div>
 
 <!-- ═══ HERO ═══ -->
 <section id="hero">
-  <div class="hero-orb"></div>
-  <div class="hero-board" id="heroBoard" aria-hidden="true"></div>
+  <div class="orb orb-1" aria-hidden="true"></div>
+  <div class="orb orb-2" aria-hidden="true"></div>
+  <div class="hero-board" id="hboard" aria-hidden="true"></div>
   <div class="hero-content">
-    <div class="hero-tag">Шахова школа · Київ</div>
-    <h1>Думати на <em>кілька ходів</em> вперед</h1>
+    <div class="hero-tag"><i>♟</i> Шахова школа · Київ</div>
+    <h1>Думати на<br><span class="gold-text">кілька ходів</span><br>вперед</h1>
     <p class="hero-sub">Навчання шахів для дітей від 5 років та дорослих. Онлайн і офлайн. Індивідуальний підхід, досвідчені тренери, реальний результат.</p>
-    <div class="hero-btns">
-      <button class="btn-primary mag" onclick="openModal()">Записатись на пробне заняття</button>
-      <a href="#programs" class="btn-outline mag">Програми</a>
+    <div class="hero-cta">
+      <button class="btn mag" onclick="openModal('Пробне заняття (Hero)')">Записатись на пробне</button>
+      <a href="#programs" class="btn-o mag">Переглянути програми</a>
     </div>
     <div class="hero-stats">
-      <div><div class="stat-num" data-count="8" data-suffix="+">0+</div><div class="stat-label">Років досвіду</div></div>
-      <div><div class="stat-num" data-count="500" data-suffix="+">0+</div><div class="stat-label">Учнів</div></div>
-      <div><div class="stat-num" data-count="12">0</div><div class="stat-label">Тренерів</div></div>
-      <div><div class="stat-num" data-count="100" data-suffix="+">0+</div><div class="stat-label">Турнірів</div></div>
+      <div><div class="stat-n" data-count="8" data-suf="+">0+</div><div class="stat-l">Років досвіду</div></div>
+      <div><div class="stat-n" data-count="500" data-suf="+">0+</div><div class="stat-l">Учнів</div></div>
+      <div><div class="stat-n" data-count="12">0</div><div class="stat-l">Тренерів</div></div>
+      <div><div class="stat-n" data-count="100" data-suf="+">0+</div><div class="stat-l">Турнірів</div></div>
     </div>
   </div>
-  <div class="scroll-hint">
-    <span>Scroll</span>
-    <div class="scroll-hint-line"></div>
+  <div class="scroll-cue" aria-hidden="true">
+    <span>scroll</span><div class="scroll-line"></div>
   </div>
 </section>
 
 <!-- ═══ ABOUT ═══ -->
 <section id="about">
   <div class="reveal">
-    <div class="section-label">Наші переваги</div>
-    <h2 class="section-title">Чому обирають <em style="color:var(--gold);font-style:normal">CombinationChess</em></h2>
-    <p class="section-sub">Ми створюємо середовище, де кожен — від новачка до чемпіона — розвивається у своєму темпі.</p>
+    <div class="s-label">Наші переваги</div>
+    <h2 class="s-title">Чому обирають <span class="gold-text">CombinationChess</span></h2>
+    <p class="s-sub">Ми створюємо середовище, де кожен — від новачка до чемпіона — розвивається у своєму темпі.</p>
   </div>
-  <div class="advantages-grid stagger">
-    <div class="adv-card">
-      <span class="adv-icon">♔</span>
-      <div class="adv-title">Досвідчені тренери</div>
-      <div class="adv-desc">Команда сертифікованих фахівців з досвідом від 5 років. Серед нас — майстри та кандидати в майстри спорту.</div>
-    </div>
-    <div class="adv-card">
-      <span class="adv-icon">♙</span>
-      <div class="adv-title">Індивідуальний підхід</div>
-      <div class="adv-desc">Програма підбирається під рівень і цілі кожного учня. Ми не гонимо потік — ми будуємо навичку.</div>
-    </div>
-    <div class="adv-card">
-      <span class="adv-icon">♜</span>
-      <div class="adv-title">Онлайн і офлайн</div>
-      <div class="adv-desc">Займайтесь з будь-якої точки світу або відвідуйте очні заняття у нас у Києві. Формат обираєте ви.</div>
-    </div>
-    <div class="adv-card">
-      <span class="adv-icon">♞</span>
-      <div class="adv-title">Розвиток логіки</div>
-      <div class="adv-desc">Шахи розвивають концентрацію, стратегічне мислення й посидючість — навички, важливі в будь-якій сфері.</div>
-    </div>
-    <div class="adv-card">
-      <span class="adv-icon">♛</span>
-      <div class="adv-title">Турніри і рейтинг</div>
-      <div class="adv-desc">Регулярні змагання для учнів будь-якого рівня. Отримайте офіційний рейтинг ФІДЕ.</div>
-    </div>
-    <div class="adv-card">
-      <span class="adv-icon">♝</span>
-      <div class="adv-title">Перше заняття — безкоштовно</div>
-      <div class="adv-desc">Приходьте без зобов'язань. Познайомтесь із тренером і почніть грати вже в перший день.</div>
-    </div>
+  <div class="adv-grid stagger">
+    <div class="adv-card"><span class="adv-icon">♔</span><div class="adv-title">Досвідчені тренери</div><div class="adv-desc">Команда сертифікованих фахівців з досвідом від 5 років. Серед нас — майстри та кандидати в майстри спорту.</div></div>
+    <div class="adv-card"><span class="adv-icon">♙</span><div class="adv-title">Індивідуальний підхід</div><div class="adv-desc">Програма підбирається під рівень і цілі кожного учня. Ми не гонимо потік — ми будуємо навичку.</div></div>
+    <div class="adv-card"><span class="adv-icon">♜</span><div class="adv-title">Онлайн і офлайн</div><div class="adv-desc">Займайтесь з будь-якої точки світу або відвідуйте очні заняття у нас у Києві.</div></div>
+    <div class="adv-card"><span class="adv-icon">♞</span><div class="adv-title">Розвиток логіки</div><div class="adv-desc">Шахи розвивають концентрацію, стратегічне мислення й посидючість — навички для будь-якої сфери.</div></div>
+    <div class="adv-card"><span class="adv-icon">♛</span><div class="adv-title">Турніри і рейтинг</div><div class="adv-desc">Регулярні змагання для учнів будь-якого рівня. Отримайте офіційний рейтинг ФІДЕ.</div></div>
+    <div class="adv-card"><span class="adv-icon">♝</span><div class="adv-title">Перше заняття — безкоштовно</div><div class="adv-desc">Приходьте без зобов'язань. Познайомтесь із тренером і почніть грати вже в перший день.</div></div>
   </div>
 </section>
 
 <!-- ═══ PROGRAMS ═══ -->
 <section id="programs">
   <div class="reveal">
-    <div class="section-label">Навчання</div>
-    <h2 class="section-title">Програми</h2>
-    <p class="section-sub">Три напрями — для будь-якого віку та рівня підготовки.</p>
+    <div class="s-label">Навчання</div>
+    <h2 class="s-title">Програми</h2>
+    <p class="s-sub">Три напрями — для будь-якого віку та рівня підготовки.</p>
   </div>
   <div class="prog-tabs reveal">
-    <button class="prog-tab active mag" onclick="switchTab('children',this)">Діти</button>
-    <button class="prog-tab mag" onclick="switchTab('adults',this)">Дорослі</button>
-    <button class="prog-tab mag" onclick="switchTab('individual',this)">Індивідуально</button>
+    <button class="prog-tab on" onclick="switchTab('ch',this)">Діти</button>
+    <button class="prog-tab" onclick="switchTab('ad',this)">Дорослі</button>
+    <button class="prog-tab" onclick="switchTab('in',this)">Індивідуально</button>
   </div>
 
-  <div class="prog-panel active" id="tab-children">
-    <div class="prog-grid stagger">
+  <div class="prog-panel on" id="tab-ch">
+    <div class="prog-grid stagger in">
       <div class="prog-card">
         <div class="prog-badge">5–8 років</div>
         <div class="prog-name">Юний шахіст</div>
@@ -798,6 +540,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offse
           <span><strong>Формат:</strong> Група до 6 / Онлайн</span>
           <span><strong>Частота:</strong> 2 рази на тиждень</span>
         </div>
+        <button class="btn mag" onclick="openModal('Юний шахіст (5–8 років)')">Записатись →</button>
       </div>
       <div class="prog-card">
         <div class="prog-badge">8–14 років</div>
@@ -808,6 +551,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offse
           <span><strong>Формат:</strong> Група до 8 / Онлайн</span>
           <span><strong>Частота:</strong> 2–3 рази на тиждень</span>
         </div>
+        <button class="btn mag" onclick="openModal('Шаховий клуб (8–14 років)')">Записатись →</button>
       </div>
       <div class="prog-card">
         <div class="prog-badge">14–18 років</div>
@@ -818,11 +562,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offse
           <span><strong>Формат:</strong> Міні-група до 4 / Онлайн</span>
           <span><strong>Частота:</strong> 3 рази на тиждень</span>
         </div>
+        <button class="btn mag" onclick="openModal('Професійний старт (14–18 років)')">Записатись →</button>
       </div>
     </div>
   </div>
 
-  <div class="prog-panel" id="tab-adults">
+  <div class="prog-panel" id="tab-ad">
     <div class="prog-grid stagger">
       <div class="prog-card">
         <div class="prog-badge">Початківець</div>
@@ -833,21 +578,23 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offse
           <span><strong>Формат:</strong> Група / Онлайн</span>
           <span><strong>Частота:</strong> 2 рази на тиждень</span>
         </div>
+        <button class="btn mag" onclick="openModal('Шахи з нуля (дорослі)')">Записатись →</button>
       </div>
       <div class="prog-card">
         <div class="prog-badge">Впевнений гравець</div>
         <div class="prog-name">Підвищення рівня</div>
-        <div class="prog-desc">Вивчення стратегії, аналіз партій, робота з комп'ютером. Для тих, хто хоче перейти на новий рівень.</div>
+        <div class="prog-desc">Вивчення стратегії, аналіз партій, робота з комп'ютером. Для тих, хто хоче зростати далі.</div>
         <div class="prog-meta">
           <span><strong>Тривалість:</strong> 75 хвилин</span>
           <span><strong>Формат:</strong> Онлайн / Офлайн</span>
           <span><strong>Частота:</strong> 2 рази на тиждень</span>
         </div>
+        <button class="btn mag" onclick="openModal('Підвищення рівня (дорослі)')">Записатись →</button>
       </div>
     </div>
   </div>
 
-  <div class="prog-panel" id="tab-individual">
+  <div class="prog-panel" id="tab-in">
     <div class="prog-grid stagger">
       <div class="prog-card">
         <div class="prog-badge">Будь-який рівень</div>
@@ -858,6 +605,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offse
           <span><strong>Формат:</strong> Онлайн / Офлайн</span>
           <span><strong>Частота:</strong> За домовленістю</span>
         </div>
+        <button class="btn mag" onclick="openModal('Персональні заняття (індивідуально)')">Записатись →</button>
       </div>
       <div class="prog-card">
         <div class="prog-badge">Змагання</div>
@@ -868,73 +616,70 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offse
           <span><strong>Формат:</strong> Онлайн / Офлайн</span>
           <span><strong>Частота:</strong> За планом підготовки</span>
         </div>
+        <button class="btn mag" onclick="openModal('Підготовка до турніру')">Записатись →</button>
       </div>
     </div>
-  </div>
-
-  <div style="margin-top:3rem;text-align:center" class="reveal">
-    <button class="btn-primary mag" onclick="openModal()">Записатись на програму →</button>
   </div>
 </section>
 
 <!-- ═══ PRICES ═══ -->
 <section id="prices">
   <div class="reveal">
-    <div class="section-label">Вартість</div>
-    <h2 class="section-title">Тарифи</h2>
-    <p class="section-sub">Прозорі ціни. Без прихованих платежів.</p>
+    <div class="s-label">Вартість</div>
+    <h2 class="s-title">Тарифи</h2>
+    <p class="s-sub">Прозорі ціни. Без прихованих платежів.</p>
   </div>
   <div class="prices-grid stagger">
     <div class="price-card">
       <div class="price-name">Старт</div>
-      <div class="price-amount">1 200 ₴</div>
-      <div class="price-period">на місяць · група</div>
-      <ul class="price-features">
+      <div class="price-amt">1 200 ₴</div>
+      <div class="price-per">на місяць · група</div>
+      <ul class="price-feat">
         <li>8 занять на місяць</li>
         <li>Група до 8 осіб</li>
         <li>Онлайн-платформа</li>
         <li>Домашні завдання</li>
       </ul>
-      <button class="btn-outline mag" style="width:100%" onclick="openModal()">Записатись</button>
+      <button class="btn-o mag" style="width:100%" onclick="openModal('Тариф Старт — 1 200 ₴/міс')">Обрати тариф →</button>
     </div>
     <div class="price-card popular">
-      <div class="popular-badge">Популярний</div>
+      <div class="pop-badge">Найпопулярніший</div>
       <div class="price-name">Розвиток</div>
-      <div class="price-amount">2 400 ₴</div>
-      <div class="price-period">на місяць · міні-група</div>
-      <ul class="price-features">
+      <div class="price-amt">2 400 ₴</div>
+      <div class="price-per">на місяць · міні-група</div>
+      <ul class="price-feat">
         <li>12 занять на місяць</li>
         <li>Група до 4 осіб</li>
         <li>Онлайн + офлайн</li>
         <li>Розбір партій</li>
         <li>Участь у турнірах</li>
       </ul>
-      <button class="btn-primary mag" style="width:100%" onclick="openModal()">Записатись</button>
+      <button class="btn mag" style="width:100%" onclick="openModal('Тариф Розвиток — 2 400 ₴/міс')">Обрати тариф →</button>
     </div>
     <div class="price-card">
       <div class="price-name">Профі</div>
-      <div class="price-amount">4 500 ₴</div>
-      <div class="price-period">на місяць · індивідуально</div>
-      <ul class="price-features">
+      <div class="price-amt">4 500 ₴</div>
+      <div class="price-per">на місяць · індивідуально</div>
+      <ul class="price-feat">
         <li>8 особистих занять</li>
         <li>Персональний тренер</li>
         <li>Підготовка до ФІДЕ</li>
         <li>ШІ-аналіз партій</li>
         <li>Пріоритетна підтримка</li>
       </ul>
-      <button class="btn-outline mag" style="width:100%" onclick="openModal()">Записатись</button>
+      <button class="btn-o mag" style="width:100%" onclick="openModal('Тариф Профі — 4 500 ₴/міс')">Обрати тариф →</button>
     </div>
     <div class="price-card">
       <div class="price-name">Корпоратив</div>
-      <div class="price-amount">За запитом</div>
-      <div class="price-period">для команд і компаній</div>
-      <ul class="price-features">
+      <div class="price-amt">За запитом</div>
+      <div class="price-per">для команд і компаній</div>
+      <ul class="price-feat">
         <li>Індивідуальний план</li>
         <li>Тімбілдинг на шахах</li>
         <li>Виїзд тренера в офіс</li>
         <li>Корпоративний турнір</li>
       </ul>
-      <button class="btn-outline mag" style="width:100%" onclick="openModal()">Запитати</button>
+      <button class="btn-o mag" style="width:100%" onclick="openModal('Корпоративний запит')">Надіслати запит →</button>
     </div>
   </div>
 </section>
@@ -942,47 +687,43 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offse
 <!-- ═══ SCHEDULE ═══ -->
 <section id="schedule">
   <div class="reveal">
-    <div class="section-label">Розклад</div>
-    <h2 class="section-title">Заняття</h2>
-    <p class="section-sub">Актуальний розклад груп. Онлайн-заняття — за індивідуальною домовленістю.</p>
+    <div class="s-label">Розклад</div>
+    <h2 class="s-title">Заняття</h2>
+    <p class="s-sub">Актуальний розклад груп. Онлайн-заняття — за індивідуальною домовленістю.</p>
   </div>
-  <div style="overflow-x:auto" class="reveal">
-    <table class="schedule-table">
-      <thead>
-        <tr>
-          <th>Група</th><th>Пн</th><th>Ср</th><th>Пт</th><th>Формат</th><th></th>
-        </tr>
-      </thead>
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch" class="reveal">
+    <table class="sched-table">
+      <thead><tr><th>Група</th><th>Пн</th><th>Ср</th><th>Пт</th><th>Формат</th><th></th></tr></thead>
       <tbody>
         <tr>
           <td>Юний шахіст (5–8 років)</td>
           <td>15:00</td><td>15:00</td><td>—</td>
-          <td><span class="tag-group">Офлайн</span></td>
-          <td><button class="btn-primary mag" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
+          <td><span class="tag">Офлайн</span></td>
+          <td><button class="btn btn-sm" onclick="openModal('Юний шахіст (5–8 років) — розклад')">Записатись</button></td>
         </tr>
         <tr>
           <td>Шаховий клуб (8–14 років)</td>
           <td>16:30</td><td>16:30</td><td>16:30</td>
-          <td><span class="tag-group">Офлайн</span></td>
-          <td><button class="btn-primary mag" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
+          <td><span class="tag">Офлайн</span></td>
+          <td><button class="btn btn-sm" onclick="openModal('Шаховий клуб (8–14 років) — розклад')">Записатись</button></td>
         </tr>
         <tr>
           <td>Професійний старт (14+)</td>
           <td>18:00</td><td>18:00</td><td>18:00</td>
-          <td><span class="tag-group">Офлайн</span></td>
-          <td><button class="btn-primary mag" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
+          <td><span class="tag">Офлайн</span></td>
+          <td><button class="btn btn-sm" onclick="openModal('Професійний старт (14+) — розклад')">Записатись</button></td>
         </tr>
         <tr>
           <td>Дорослі — початківці</td>
           <td>—</td><td>19:30</td><td>19:30</td>
-          <td><span class="tag-group tag-online">Онлайн</span></td>
-          <td><button class="btn-primary mag" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
+          <td><span class="tag tag-on">Онлайн</span></td>
+          <td><button class="btn btn-sm" onclick="openModal('Дорослі — початківці (онлайн)')">Записатись</button></td>
         </tr>
         <tr>
           <td>Дорослі — підвищення рівня</td>
           <td>19:00</td><td>—</td><td>19:00</td>
-          <td><span class="tag-group tag-online">Онлайн</span></td>
-          <td><button class="btn-primary mag" style="padding:.4rem 1rem;font-size:.75rem" onclick="openModal()">Записатись</button></td>
+          <td><span class="tag tag-on">Онлайн</span></td>
+          <td><button class="btn btn-sm" onclick="openModal('Дорослі — підвищення рівня (онлайн)')">Записатись</button></td>
         </tr>
       </tbody>
     </table>
@@ -992,82 +733,71 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offse
 <!-- ═══ REVIEWS ═══ -->
 <section id="reviews">
   <div class="reveal">
-    <div class="section-label">Відгуки</div>
-    <h2 class="section-title">Говорять учні</h2>
+    <div class="s-label">Відгуки</div>
+    <h2 class="s-title">Говорять учні</h2>
   </div>
-  <div class="reviews-grid stagger">
-    <div class="review-card">
-      <div class="quote-mark">"</div>
-      <div class="review-stars">★★★★★</div>
-      <p class="review-text">Віддала доньку у 6 років, боялася що рано. Через пів року вона вже брала участь у міському турнірі. Тренер знайшов підхід з першого заняття.</p>
-      <div class="review-author">Марина К.</div>
-      <div class="review-role">Мама учениці, 7 років</div>
-    </div>
-    <div class="review-card">
-      <div class="quote-mark">"</div>
-      <div class="review-stars">★★★★★</div>
-      <p class="review-text">Почав грати у 34 роки, думав, що пізно. У CombinationChess переконали, що ні. За рік виріс з нуля до рівня, де можу грати у клубах.</p>
-      <div class="review-author">Дмитро Р.</div>
-      <div class="review-role">Учень, 35 років</div>
-    </div>
-    <div class="review-card">
-      <div class="quote-mark">"</div>
-      <div class="review-stars">★★★★★</div>
-      <p class="review-text">Син перестав кидати незакінчені задачі — почав думати на кілька кроків вперед. Шкільні вчителі теж помітили зміни.</p>
-      <div class="review-author">Наталія П.</div>
-      <div class="review-role">Мама учня, 11 років</div>
-    </div>
+  <div class="rev-grid stagger">
+    <div class="rev-card"><div class="rev-q">"</div><div class="rev-stars">★★★★★</div><p class="rev-text">Віддала доньку у 6 років, боялася що рано. Через пів року вона вже брала участь у міському турнірі. Тренер знайшов підхід з першого заняття.</p><div class="rev-author">Марина К.</div><div class="rev-role">Мама учениці, 7 років</div></div>
+    <div class="rev-card"><div class="rev-q">"</div><div class="rev-stars">★★★★★</div><p class="rev-text">Почав грати у 34 роки, думав, що пізно. У CombinationChess переконали, що ні. За рік виріс з нуля до рівня клубного гравця.</p><div class="rev-author">Дмитро Р.</div><div class="rev-role">Учень, 35 років</div></div>
+    <div class="rev-card"><div class="rev-q">"</div><div class="rev-stars">★★★★★</div><p class="rev-text">Син перестав кидати незакінчені задачі — почав думати на кілька кроків вперед. Шкільні вчителі теж помітили зміни.</p><div class="rev-author">Наталія П.</div><div class="rev-role">Мама учня, 11 років</div></div>
   </div>
+  <p class="swipe-hint">← свайпайте →</p>
 </section>
 
 <!-- ═══ FORM ═══ -->
 <section id="form-section">
   <div class="form-wrap">
     <div class="form-left reveal">
-      <div class="section-label">Почніть зараз</div>
-      <h2 class="section-title">Перший крок<br><em style="color:var(--gold);font-style:normal">безкоштовний</em></h2>
-      <p class="section-sub">Залиште заявку — ми зв'яжемось протягом години, підберемо програму та зручний час.</p>
-      <div class="form-points">
-        <div class="form-point">Пробне заняття без оплати</div>
-        <div class="form-point">Тренер оцінить рівень і дасть рекомендації</div>
-        <div class="form-point">Жодних зобов'язань після пробного</div>
-        <div class="form-point">Онлайн або офлайн — на ваш вибір</div>
+      <div class="s-label">Почніть зараз</div>
+      <h2 class="s-title">Перший крок<br><span class="gold-text">безкоштовний</span></h2>
+      <p class="s-sub">Залиште заявку — ми зв'яжемось протягом години, підберемо програму та зручний час.</p>
+      <div class="form-pts">
+        <div class="form-pt">Пробне заняття без оплати</div>
+        <div class="form-pt">Тренер оцінить рівень і дасть рекомендації</div>
+        <div class="form-pt">Жодних зобов'язань після пробного</div>
+        <div class="form-pt">Онлайн або офлайн — на ваш вибір</div>
       </div>
     </div>
     <div class="reveal">
-      <div class="contact-form" id="mainFormWrap">
-        <div class="form-title">Записатись на пробне</div>
-        <div class="form-group">
-          <label for="name">Ваше ім'я *</label>
-          <input type="text" id="name" placeholder="Іван Іваненко" autocomplete="given-name" aria-required="true">
-          <div class="form-error" id="nameErr">Введіть ім'я (мінімум 2 символи)</div>
+      <div class="fbox" id="mainBox">
+        <div class="ftitle">Записатись</div>
+        <p class="fsub">Заповніть форму — ми підберемо найкращу програму для вас</p>
+        <div class="fg">
+          <label for="f-name">Ваше ім'я *</label>
+          <input type="text" id="f-name" placeholder="Іван Іваненко" autocomplete="given-name">
+          <div class="ferr" id="f-name-err">Введіть ім'я (мінімум 2 символи)</div>
         </div>
-        <div class="form-group">
-          <label for="phone">Телефон *</label>
-          <input type="tel" id="phone" placeholder="+38 (0XX) XXX-XX-XX" autocomplete="tel" aria-required="true">
-          <div class="form-error" id="phoneErr">Введіть коректний номер телефону</div>
+        <div class="fg">
+          <label for="f-phone">Телефон *</label>
+          <input type="tel" id="f-phone" placeholder="+38 (0XX) XXX-XX-XX" autocomplete="tel">
+          <div class="ferr" id="f-phone-err">Введіть коректний номер телефону</div>
         </div>
-        <div class="form-group">
-          <label for="telegram">Telegram (необов'язково)</label>
-          <input type="text" id="telegram" placeholder="@username" autocomplete="off">
+        <div class="fg">
+          <label for="f-tg">Telegram (необов'язково)</label>
+          <input type="text" id="f-tg" placeholder="@username">
         </div>
-        <div class="form-group">
-          <label for="program">Програма</label>
-          <select id="program">
-            <option value="">Не обрано</option>
+        <div class="fg">
+          <label for="f-prog">Програма, яка цікавить</label>
+          <select id="f-prog">
+            <option value="">Підбере менеджер</option>
             <option>Юний шахіст (5–8 років)</option>
             <option>Шаховий клуб (8–14 років)</option>
             <option>Професійний старт (14+)</option>
             <option>Дорослі — початківці</option>
             <option>Дорослі — підвищення рівня</option>
-            <option>Індивідуальні заняття</option>
+            <option>Персональні заняття</option>
+            <option>Підготовка до турніру</option>
           </select>
         </div>
-        <button class="btn-primary form-submit mag" onclick="submitForm()">Надіслати заявку →</button>
-        <p class="form-note">Натискаючи кнопку, ви погоджуєтесь з політикою конфіденційності</p>
+        <div class="fg">
+          <label for="f-msg">Коментар (необов'язково)</label>
+          <textarea id="f-msg" placeholder="Розкажіть про себе або про дитину, мета навчання…"></textarea>
+        </div>
+        <button class="btn fsubmit mag" onclick="submitMain()">Надіслати заявку →</button>
+        <p class="fnote">Натискаючи кнопку, ви погоджуєтесь з політикою конфіденційності</p>
       </div>
-      <div class="form-success" id="formSuccess">
-        <div class="success-icon">♔</div>
+      <div class="fsuccess" id="mainOk">
+        <span class="icon">♔</span>
         <h3>Заявку прийнято!</h3>
         <p>Ми зв'яжемось з вами протягом години. Перевірте телефон — зателефонуємо або напишемо у Telegram.</p>
       </div>
@@ -1077,49 +807,29 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offse
 
 <!-- ═══ CONTACTS ═══ -->
 <section id="contacts">
-  <div class="contacts-grid">
+  <div class="ct-grid">
     <div class="reveal">
-      <div class="section-label">Контакти</div>
-      <h2 class="section-title">Ми поруч</h2>
+      <div class="s-label">Контакти</div>
+      <h2 class="s-title">Ми поруч</h2>
       <div style="margin-top:2rem">
-        <div class="contact-item">
-          <div class="contact-label">Телефон</div>
-          <div class="contact-value"><a href="tel:+380991234567">+38 (099) 123-45-67</a></div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-label">Telegram</div>
-          <div class="contact-value"><a href="https://t.me/CombinationChessSchool_bot" target="_blank">@CombinationChessSchool_bot</a></div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-label">Email</div>
-          <div class="contact-value"><a href="mailto:info@combinationchess.ua">info@combinationchess.ua</a></div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-label">Адреса</div>
-          <div class="contact-value">вул. Хрещатик, 22, 4-й поверх<br>Київ, 01001</div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-label">🚇 Метро</div>
-          <div class="contact-value">Хрещатик — 2 хвилини пішки</div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-label">Режим роботи</div>
-          <div class="contact-value">Пн–Пт: 14:00 – 20:00<br>Сб: 10:00 – 16:00</div>
-        </div>
+        <div class="ct-item"><div class="ct-label">Телефон</div><div class="ct-val"><a href="tel:+380991234567">+38 (099) 123-45-67</a></div></div>
+        <div class="ct-item"><div class="ct-label">Telegram</div><div class="ct-val"><a href="https://t.me/CombinationChessSchool_bot" target="_blank" rel="noopener">@CombinationChessSchool_bot</a></div></div>
+        <div class="ct-item"><div class="ct-label">Email</div><div class="ct-val"><a href="mailto:info@combinationchess.ua">info@combinationchess.ua</a></div></div>
+        <div class="ct-item"><div class="ct-label">Адреса</div><div class="ct-val">вул. Хрещатик, 22, 4-й поверх<br>Київ, 01001</div></div>
+        <div class="ct-item"><div class="ct-label">🚇 Метро</div><div class="ct-val">Хрещатик — 2 хвилини пішки</div></div>
+        <div class="ct-item"><div class="ct-label">Режим роботи</div><div class="ct-val">Пн–Пт: 14:00 – 20:00<br>Сб: 10:00 – 16:00</div></div>
       </div>
     </div>
     <div class="reveal">
-      <div class="map-placeholder">
-        <span>Google Maps iframe</span>
-      </div>
+      <div class="map-box"><span>Google Maps iframe</span></div>
     </div>
   </div>
 </section>
 
-<!-- ═══ FOOTER ═══ -->
+<!-- FOOTER -->
 <footer>
-  <div class="footer-copy">© 2026 CombinationChess. Всі права захищені.</div>
-  <nav class="footer-nav">
+  <div class="fc">© 2025 CombinationChess. Всі права захищені.</div>
+  <nav class="fn">
     <a href="#about">Про школу</a>
     <a href="#programs">Програми</a>
     <a href="#prices">Ціни</a>
@@ -1128,307 +838,291 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offse
   </nav>
 </footer>
 
-<!-- ═══ MODAL ═══ -->
-<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <div id="modalFormWrap">
-      <div class="form-title">Записатись на пробне</div>
-      <div class="form-group">
-        <label for="mname">Ваше ім'я *</label>
-        <input type="text" id="mname" placeholder="Іван Іваненко" autocomplete="given-name" aria-required="true">
-        <div class="form-error" id="mnameErr">Введіть ім'я</div>
+<!-- ═══ SMART MODAL ═══ -->
+<div class="modal-overlay" id="modal" onclick="closeModalBg(event)" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()" aria-label="Закрити">✕</button>
+    <div id="modal-form-wrap">
+      <div class="ftitle" id="modal-title">Записатись</div>
+      <p class="fsub" id="modal-desc">Залиште контакти — ми зв'яжемось протягом години</p>
+      <div class="modal-service-badge" id="modal-badge" style="display:none"></div>
+      <div class="fg">
+        <label for="m-name">Ваше ім'я *</label>
+        <input type="text" id="m-name" placeholder="Іван Іваненко" autocomplete="given-name">
+        <div class="ferr" id="m-name-err">Введіть ім'я</div>
       </div>
-      <div class="form-group">
-        <label for="mphone">Телефон *</label>
-        <input type="tel" id="mphone" placeholder="+38 (0XX) XXX-XX-XX" autocomplete="tel" aria-required="true">
-        <div class="form-error" id="mphoneErr">Введіть коректний номер</div>
+      <div class="fg">
+        <label for="m-phone">Телефон *</label>
+        <input type="tel" id="m-phone" placeholder="+38 (0XX) XXX-XX-XX" autocomplete="tel">
+        <div class="ferr" id="m-phone-err">Введіть коректний номер</div>
       </div>
-      <div class="form-group">
-        <label for="mtelegram">Telegram (необов'язково)</label>
-        <input type="text" id="mtelegram" placeholder="@username">
+      <div class="fg">
+        <label for="m-tg">Telegram (необов'язково)</label>
+        <input type="text" id="m-tg" placeholder="@username">
       </div>
-      <div class="form-group">
-        <label for="mprogram">Програма</label>
-        <select id="mprogram">
-          <option value="">Не обрано</option>
-          <option>Юний шахіст (5–8 років)</option>
-          <option>Шаховий клуб (8–14 років)</option>
-          <option>Професійний старт (14+)</option>
-          <option>Дорослі — початківці</option>
-          <option>Дорослі — підвищення рівня</option>
-          <option>Індивідуальні заняття</option>
-        </select>
+      <div class="fg">
+        <label for="m-msg">Коментар (необов'язково)</label>
+        <textarea id="m-msg" placeholder="Вік дитини, досвід гри, зручний час…" style="min-height:70px"></textarea>
       </div>
-      <button class="btn-primary form-submit mag" onclick="submitModal()">Надіслати заявку →</button>
-      <p class="form-note">Ми зв'яжемось протягом години</p>
+      <button class="btn fsubmit mag" onclick="submitModal()">Надіслати заявку →</button>
+      <p class="fnote">Ми зв'яжемось з вами протягом години</p>
     </div>
-    <div class="form-success" id="modalSuccess" style="display:none">
-      <div class="success-icon">♔</div>
+    <div class="fsuccess" id="modal-ok" style="display:none">
+      <span class="icon">♔</span>
       <h3>Заявку прийнято!</h3>
       <p>Ми зв'яжемось з вами протягом години.</p>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
+<!-- ═══════════════════
      SCRIPTS
-═══════════════════════════════════════ -->
+═══════════════════ -->
 <script>
-/* ── PAGE LOADER ── */
+'use strict';
+
+/* ── DEVICE ── */
+const TOUCH = window.matchMedia('(pointer:coarse)').matches;
+if(!TOUCH) document.body.classList.add('has-cursor');
+
+/* ── LOADER ── */
 window.addEventListener('load',()=>{
-  setTimeout(()=>document.getElementById('loader').classList.add('done'),600);
+  setTimeout(()=>document.getElementById('loader').classList.add('done'), TOUCH?400:700);
 });
 
-/* ── CUSTOM CURSOR ── */
-const dot  = document.getElementById('cursor-dot');
-const ring = document.getElementById('cursor-ring');
-let mx=0,my=0,rx=0,ry=0;
-
-document.addEventListener('mousemove',e=>{
-  mx=e.clientX; my=e.clientY;
-  dot.style.left=mx+'px'; dot.style.top=my+'px';
-});
-
-(function animRing(){
-  rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
-  ring.style.left=rx+'px'; ring.style.top=ry+'px';
-  requestAnimationFrame(animRing);
-})();
-
-document.querySelectorAll('a,button,.adv-card,.prog-card,.price-card,.review-card').forEach(el=>{
-  el.addEventListener('mouseenter',()=>ring.classList.add('hovering'));
-  el.addEventListener('mouseleave',()=>ring.classList.remove('hovering'));
-});
-document.addEventListener('mousedown',()=>ring.classList.add('clicking'));
-document.addEventListener('mouseup',()=>ring.classList.remove('clicking'));
-
-/* ── PARTICLE CANVAS ── */
-(function(){
-  const canvas=document.getElementById('particle-canvas');
-  const ctx=canvas.getContext('2d');
-  let W,H,particles=[];
-  const PIECES=['♟','♙','♔','♚','♕','♛'];
-  const N=22;
-
-  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
-  resize();window.addEventListener('resize',resize);
-
-  class Particle{
-    constructor(){this.reset(true)}
-    reset(init){
-      this.x=Math.random()*W;
-      this.y=init?Math.random()*H:H+40;
-      this.size=Math.random()*14+8;
-      this.speed=Math.random()*.3+.1;
-      this.opacity=Math.random()*.12+.04;
-      this.drift=(Math.random()-.5)*.3;
-      this.piece=PIECES[Math.floor(Math.random()*PIECES.length)];
-      this.rotation=Math.random()*Math.PI*2;
-      this.rotSpeed=(Math.random()-.5)*.005;
-    }
-    update(){
-      this.y-=this.speed;this.x+=this.drift;
-      this.rotation+=this.rotSpeed;
-      if(this.y<-40)this.reset(false);
-    }
-    draw(){
-      ctx.save();
-      ctx.translate(this.x,this.y);
-      ctx.rotate(this.rotation);
-      ctx.globalAlpha=this.opacity;
-      ctx.fillStyle='#c9a84c';
-      ctx.font=`${this.size}px serif`;
-      ctx.textAlign='center';
-      ctx.textBaseline='middle';
-      ctx.fillText(this.piece,0,0);
-      ctx.restore();
-    }
-  }
-
-  for(let i=0;i<N;i++)particles.push(new Particle());
-
-  function loop(){
-    ctx.clearRect(0,0,W,H);
-    particles.forEach(p=>{p.update();p.draw()});
-    requestAnimationFrame(loop);
-  }
-  loop();
-})();
-
-/* ── HERO CHESS BOARD ── */
-(function(){
-  const b=['♜','♞','♝','♛','♚','♝','♞','♜'];
-  const w=['♖','♘','♗','♕','♔','♗','♘','♖'];
-  const board=document.getElementById('heroBoard');
-  if(!board)return;
-  for(let r=0;r<8;r++){
-    for(let c=0;c<8;c++){
-      const sq=document.createElement('div');
-      sq.className='sq'+((r+c)%2===0?' d':'');
-      if(r===0)sq.textContent=b[c];
-      else if(r===1)sq.textContent='♟';
-      else if(r===6)sq.textContent='♙';
-      else if(r===7)sq.textContent=w[c];
-      board.appendChild(sq);
-    }
-  }
-})();
-
-/* ── SCROLL: header + reveal + stagger ── */
-const header=document.getElementById('header');
-
-const revealObs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target)}
+/* ── CURSOR ── */
+if(!TOUCH){
+  const dot=document.getElementById('cur-dot'), ring=document.getElementById('cur-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.cssText=`left:${mx}px;top:${my}px;transform:translate(-50%,-50%)`},{passive:true});
+  (function lr(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;ring.style.cssText=`left:${rx}px;top:${ry}px;transform:translate(-50%,-50%)`;requestAnimationFrame(lr)})();
+  document.querySelectorAll('a,button,.adv-card,.prog-card,.price-card,.rev-card').forEach(el=>{
+    el.addEventListener('mouseenter',()=>ring.classList.add('big'));
+    el.addEventListener('mouseleave',()=>ring.classList.remove('big'));
   });
-},{threshold:.1});
-
-document.querySelectorAll('.reveal,.stagger').forEach(el=>revealObs.observe(el));
-
-window.addEventListener('scroll',()=>{
-  header.classList.toggle('scrolled',window.scrollY>40);
-},{ passive:true });
-
-/* ── COUNTER ANIMATION ── */
-function animateCounter(el){
-  const target=+el.dataset.count;
-  const suffix=el.dataset.suffix||'';
-  const dur=1800;
-  const start=performance.now();
-  function tick(now){
-    const p=Math.min((now-start)/dur,1);
-    const ease=1-Math.pow(1-p,4);
-    el.textContent=Math.round(ease*target)+suffix;
-    if(p<1)requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
+  document.addEventListener('mousedown',()=>ring.classList.add('small'));
+  document.addEventListener('mouseup',()=>ring.classList.remove('small'));
 }
 
-const counterObs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      animateCounter(e.target);
-      counterObs.unobserve(e.target);
-    }
-  });
-},{threshold:.5});
-document.querySelectorAll('.stat-num[data-count]').forEach(el=>counterObs.observe(el));
+/* ── PARTICLES ── */
+(()=>{
+  const cv=document.getElementById('pcvs'),ctx=cv.getContext('2d');
+  const PCS=['♟','♙','♔','♚','♕','♛'],N=TOUCH?7:18;
+  let W,H,ps=[];
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight}
+  resize();addEventListener('resize',resize,{passive:true});
+  class P{
+    r(init){this.x=Math.random()*W;this.y=init?Math.random()*H:H+50;this.s=Math.random()*11+7;this.sp=Math.random()*.22+.07;this.op=Math.random()*.09+.03;this.dr=(Math.random()-.5)*.22;this.pc=PCS[Math.random()*PCS.length|0];this.rot=Math.random()*Math.PI*2;this.rs=(Math.random()-.5)*.004}
+    constructor(){this.r(true)}
+    tick(){this.y-=this.sp;this.x+=this.dr;this.rot+=this.rs;if(this.y<-50)this.r(false)}
+    draw(){ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.rot);ctx.globalAlpha=this.op;ctx.fillStyle='#c9a84c';ctx.font=`${this.s}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(this.pc,0,0);ctx.restore()}
+  }
+  for(let i=0;i<N;i++)ps.push(new P());
+  (function loop(){ctx.clearRect(0,0,W,H);ps.forEach(p=>{p.tick();p.draw()});requestAnimationFrame(loop)})();
+})();
 
-/* ── MAGNETIC BUTTONS ── */
-document.querySelectorAll('.mag').forEach(el=>{
-  el.addEventListener('mousemove',e=>{
-    const r=el.getBoundingClientRect();
-    const dx=e.clientX-(r.left+r.width/2);
-    const dy=e.clientY-(r.top+r.height/2);
-    el.style.transform=`translate(${dx*.12}px,${dy*.12}px)`;
-  });
-  el.addEventListener('mouseleave',()=>{el.style.transform=''});
-});
-
-/* ── CARD SPOTLIGHT (mouse glow) ── */
-document.querySelectorAll('.adv-card').forEach(card=>{
-  card.addEventListener('mousemove',e=>{
-    const r=card.getBoundingClientRect();
-    card.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
-    card.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
-  });
-});
-
-/* ── PARALLAX HERO BOARD ── */
-document.addEventListener('mousemove',e=>{
-  const board=document.getElementById('heroBoard');
+/* ── HERO BOARD ── */
+(()=>{
+  const b=['♜','♞','♝','♛','♚','♝','♞','♜'],w=['♖','♘','♗','♕','♔','♗','♘','♖'];
+  const board=document.getElementById('hboard');
   if(!board)return;
-  const rx=(e.clientX/window.innerWidth-.5)*18;
-  const ry=(e.clientY/window.innerHeight-.5)*10;
-  board.style.transform=`translateY(-50%) rotate(${rx*.02}deg) translate(${rx*.5}px,${ry*.5}px)`;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const sq=document.createElement('div');
+    sq.className='sq'+((r+c)%2===0?' d':'');
+    if(r===0)sq.textContent=b[c];else if(r===1)sq.textContent='♟';
+    else if(r===6)sq.textContent='♙';else if(r===7)sq.textContent=w[c];
+    board.appendChild(sq);
+  }
+  if(!TOUCH){
+    document.addEventListener('mousemove',e=>{
+      const px=(e.clientX/innerWidth-.5)*18,py=(e.clientY/innerHeight-.5)*10;
+      board.style.transform=`translateY(-50%) translate(${px*.5}px,${py*.4}px) rotate(${px*.012}deg)`;
+    },{passive:true});
+  }
+})();
+
+/* ── HEADER SCROLL ── */
+const hdr=document.getElementById('hdr');
+let lastY=0;
+addEventListener('scroll',()=>{
+  const y=scrollY;
+  hdr.classList.toggle('scrolled',y>40);
+  if(TOUCH) hdr.style.transform=(y>lastY&&y>80)?'translateY(-100%)':'';
+  lastY=y;
 },{passive:true});
+
+/* ── REVEAL ── */
+const ro=new IntersectionObserver(ee=>{ee.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target)}})},{threshold:.08,rootMargin:'0px 0px -20px 0px'});
+document.querySelectorAll('.reveal,.stagger').forEach(el=>ro.observe(el));
+
+/* ── COUNTER ── */
+function animC(el){
+  if(el._done)return;el._done=1;
+  const t=+el.dataset.count,suf=el.dataset.suf||'',dur=TOUCH?1100:1800,s=performance.now();
+  (function f(n){const p=Math.min((n-s)/dur,1),e=1-Math.pow(1-p,4);el.textContent=Math.round(e*t)+suf;if(p<1)requestAnimationFrame(f);})(s);
+}
+const co=new IntersectionObserver(ee=>{ee.forEach(e=>{if(e.isIntersecting){animC(e.target);co.unobserve(e.target)}})},{threshold:.5});
+document.querySelectorAll('.stat-n[data-count]').forEach(el=>co.observe(el));
+
+/* ── MAGNETIC BUTTONS (desktop) ── */
+if(!TOUCH){
+  document.querySelectorAll('.mag').forEach(el=>{
+    el.addEventListener('mousemove',e=>{
+      const r=el.getBoundingClientRect();
+      el.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.13}px,${(e.clientY-r.top-r.height/2)*.13}px)`;
+    });
+    el.addEventListener('mouseleave',()=>el.style.transform='');
+  });
+  /* card spotlight */
+  document.querySelectorAll('.adv-card').forEach(c=>{
+    c.addEventListener('mousemove',e=>{
+      const r=c.getBoundingClientRect();
+      c.style.setProperty('--gx',((e.clientX-r.left)/r.width*100)+'%');
+      c.style.setProperty('--gy',((e.clientY-r.top)/r.height*100)+'%');
+      c.style.setProperty('--show','1');
+    });
+    c.addEventListener('mouseleave',()=>c.style.setProperty('--show','0'));
+  });
+  const st=document.createElement('style');
+  st.textContent='.adv-card::after{opacity:calc(var(--show,0)*1)!important}';
+  document.head.appendChild(st);
+}
+
+/* ── TOUCH RIPPLE ── */
+if(TOUCH){
+  document.querySelectorAll('.btn,.btn-o,.prog-tab').forEach(el=>{
+    el.style.position='relative';el.style.overflow='hidden';
+    el.addEventListener('touchstart',e=>{
+      const r=el.getBoundingClientRect(),t=e.touches[0];
+      const rip=document.createElement('span');
+      rip.className='rip';rip.style.left=(t.clientX-r.left)+'px';rip.style.top=(t.clientY-r.top)+'px';
+      el.appendChild(rip);rip.addEventListener('animationend',()=>rip.remove());
+    },{passive:true});
+  });
+}
 
 /* ── TABS ── */
 function switchTab(id,btn){
-  document.querySelectorAll('.prog-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.prog-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
-  btn.classList.add('active');
-  // re-observe stagger inside
-  const grid=document.querySelector('#tab-'+id+' .stagger');
-  if(grid&&!grid.classList.contains('visible')){
-    grid.classList.add('visible');
-  }
+  document.querySelectorAll('.prog-panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.prog-tab').forEach(t=>t.classList.remove('on'));
+  const panel=document.getElementById('tab-'+id);
+  panel.classList.add('on');btn.classList.add('on');
+  const sg=panel.querySelector('.stagger');
+  if(sg)requestAnimationFrame(()=>sg.classList.add('in'));
 }
 
-/* ── MODAL ── */
-function openModal(){
+/* ── MODAL SERVICE STATE ── */
+let currentService = '';
+
+function openModal(service){
+  currentService = service || '';
+  // set modal content
+  const badge = document.getElementById('modal-badge');
+  const title = document.getElementById('modal-title');
+  const desc  = document.getElementById('modal-desc');
+  if(currentService){
+    badge.textContent = currentService;
+    badge.style.display = 'inline-flex';
+    title.textContent = 'Записатись';
+    desc.textContent  = 'Залиште контакти — ми підтвердимо запис протягом години';
+  } else {
+    badge.style.display = 'none';
+    title.textContent = 'Записатись';
+    desc.textContent  = 'Залиште контакти — ми зв\'яжемось протягом години';
+  }
+  // reset form
+  document.getElementById('modal-form-wrap').style.display = '';
+  document.getElementById('modal-ok').style.display = 'none';
+  ['m-name','m-phone','m-tg','m-msg'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['m-name-err','m-phone-err'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  // open
   document.getElementById('modal').classList.add('open');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
+  setTimeout(()=>{ const inp=document.getElementById('m-name'); if(inp)inp.focus(); },420);
 }
 function closeModal(){
   document.getElementById('modal').classList.remove('open');
   document.body.style.overflow='';
 }
-function closeModalOutside(e){if(e.target===document.getElementById('modal'))closeModal()}
+function closeModalBg(e){if(e.target===document.getElementById('modal'))closeModal()}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-/* ── MOBILE MENU ── */
+/* ── MENU ── */
 function toggleMenu(){
-  const nav=document.getElementById('mobileNav');
-  const btn=document.getElementById('burgerBtn');
-  nav.classList.toggle('open');
-  btn.classList.toggle('open');
+  const open=document.getElementById('mnav').classList.toggle('open');
+  document.getElementById('bgr').classList.toggle('open',open);
+  document.body.style.overflow=open?'hidden':'';
 }
 function closeMenu(){
-  document.getElementById('mobileNav').classList.remove('open');
-  document.getElementById('burgerBtn').classList.remove('open');
+  document.getElementById('mnav').classList.remove('open');
+  document.getElementById('bgr').classList.remove('open');
+  document.body.style.overflow='';
 }
 
 /* ── VALIDATION ── */
-function vName(v){return v.trim().length>=2}
-function vPhone(v){return /\d{7,}/.test(v.replace(/[\s\-\+\(\)]/g,''))}
+const vN=v=>v.trim().length>=2;
+const vP=v=>/\d{7,}/.test(v.replace(/[\s\-\+\(\)]/g,''));
 
 /* ── TELEGRAM ── */
-const TG_TOKEN='8519232112:AAHWbdb_i6wjMqogD3blZqE-mkewTLHt95c';
-const TG_CHAT='887078537';
+const TK='8519232112:AAHWbdb_i6wjMqogD3blZqE-mkewTLHt95c';
+const TC='887078537';
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-async function sendTG(name,phone,tg,prog){
+async function sendTG(data){
   const time=new Date().toLocaleString('uk-UA',{timeZone:'Europe/Kyiv'});
-  const text=`♟ <b>Нова заявка — CombinationChess</b>\n\n`+
-    `👤 <b>Ім'я:</b> ${esc(name)}\n`+
-    `📞 <b>Телефон:</b> ${esc(phone)}`+
-    (tg?`\n✈️ <b>Telegram:</b> ${esc(tg)}`:'')+
-    (prog?`\n📚 <b>Програма:</b> ${esc(prog)}`:'')+
-    `\n📍 <b>Місто:</b> Київ`+
-    `\n⏰ <b>Час:</b> ${time}`;
+  const dev=TOUCH?'📱 Мобільний':'💻 ПК';
+  let text=`♟ <b>Нова заявка — CombinationChess</b>`;
+  if(data.service) text+=`\n🎯 <b>Послуга:</b> ${esc(data.service)}`;
+  text+=`\n\n👤 <b>Ім'я:</b> ${esc(data.name)}`;
+  text+=`\n📞 <b>Телефон:</b> ${esc(data.phone)}`;
+  if(data.tg)  text+=`\n✈️ <b>Telegram:</b> ${esc(data.tg)}`;
+  if(data.prog&&data.prog!=='Підбере менеджер'&&data.prog!==data.service) text+=`\n📚 <b>Програма:</b> ${esc(data.prog)}`;
+  if(data.msg) text+=`\n💬 <b>Коментар:</b> ${esc(data.msg)}`;
+  text+=`\n📍 <b>Місто:</b> Київ\n${dev}\n⏰ <b>Час:</b> ${time}`;
   try{
-    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
+    const r=await fetch(`https://api.telegram.org/bot${TK}/sendMessage`,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:TG_CHAT,text,parse_mode:'HTML'})
+      body:JSON.stringify({chat_id:TC,text,parse_mode:'HTML'})
     });
-  }catch(e){console.error(e)}
+    if(!r.ok)console.warn('TG:',await r.text());
+  }catch(e){console.error('TG error:',e)}
 }
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
-/* ── FORMS ── */
-function submitForm(){
-  const n=document.getElementById('name').value;
-  const p=document.getElementById('phone').value;
-  let ok=true;
-  document.getElementById('nameErr').classList.toggle('show',!vName(n));if(!vName(n))ok=false;
-  document.getElementById('phoneErr').classList.toggle('show',!vPhone(p));if(!vPhone(p))ok=false;
-  if(!ok)return;
-  sendTG(n,p,document.getElementById('telegram').value,document.getElementById('program').value);
-  document.getElementById('mainFormWrap').style.display='none';
-  document.getElementById('formSuccess').style.display='block';
+/* ── MAIN FORM SUBMIT ── */
+function submitMain(){
+  const n=document.getElementById('f-name').value;
+  const p=document.getElementById('f-phone').value;
+  const ok1=vN(n),ok2=vP(p);
+  document.getElementById('f-name-err').classList.toggle('on',!ok1);
+  document.getElementById('f-phone-err').classList.toggle('on',!ok2);
+  if(!ok1||!ok2)return;
+  sendTG({
+    name:n, phone:p,
+    tg:document.getElementById('f-tg').value,
+    prog:document.getElementById('f-prog').value,
+    msg:document.getElementById('f-msg').value,
+    service:'Заявка з сайту (загальна форма)'
+  });
+  document.getElementById('mainBox').style.display='none';
+  document.getElementById('mainOk').style.display='block';
 }
+
+/* ── MODAL SUBMIT ── */
 function submitModal(){
-  const n=document.getElementById('mname').value;
-  const p=document.getElementById('mphone').value;
-  let ok=true;
-  document.getElementById('mnameErr').classList.toggle('show',!vName(n));if(!vName(n))ok=false;
-  document.getElementById('mphoneErr').classList.toggle('show',!vPhone(p));if(!vPhone(p))ok=false;
-  if(!ok)return;
-  sendTG(n,p,document.getElementById('mtelegram').value,document.getElementById('mprogram').value);
-  document.getElementById('modalFormWrap').style.display='none';
-  document.getElementById('modalSuccess').style.display='block';
+  const n=document.getElementById('m-name').value;
+  const p=document.getElementById('m-phone').value;
+  const ok1=vN(n),ok2=vP(p);
+  document.getElementById('m-name-err').classList.toggle('on',!ok1);
+  document.getElementById('m-phone-err').classList.toggle('on',!ok2);
+  if(!ok1||!ok2)return;
+  sendTG({
+    name:n, phone:p,
+    tg:document.getElementById('m-tg').value,
+    msg:document.getElementById('m-msg').value,
+    service:currentService||'Загальний запис'
+  });
+  document.getElementById('modal-form-wrap').style.display='none';
+  document.getElementById('modal-ok').style.display='block';
 }
 </script>
 </body>
