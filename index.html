@@ -282,7 +282,7 @@ section{padding:clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem);position:relative;z-
 .price-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(201,168,76,.08),transparent 55%);opacity:0;transition:opacity .35s;pointer-events:none}
 .price-card:hover{border-color:rgba(201,168,76,.45);transform:translateY(-7px);box-shadow:var(--shadow-card),var(--glow)}
 .price-card:hover::before{opacity:1}
-.price-card.popular{background:linear-gradient(150deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border-color:rgba(201,168,76,.5)}
+.price-card.popular{background:linear-gradient(150deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border-color:rgba(201,168,76,.5);padding-top:3.6rem}
 .pop-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),var(--gold-light));color:#000;font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.22rem 1.1rem;border-radius:100px;white-space:nowrap;box-shadow:0 4px 16px rgba(201,168,76,.3)}
 .price-name{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.2rem}
 .price-amt{font-family:var(--serif);font-size:2.8rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:.25rem}
@@ -1331,7 +1331,7 @@ function rawMoves(pos, brd, cas, ep){
       [WQ]:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]],
       [BQ]:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]};
     if(dirs[p]){
-      dirs[p].forEach(([dr,dc])=>{const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8&&!pieceColor(brd[idx(nr,nc)])!==side&&pieceColor(brd[idx(nr,nc)])!==side)add(idx(nr,nc))});
+      dirs[p].forEach(([dr,dc])=>{const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8&&pieceColor(brd[idx(nr,nc)])!==side)add(idx(nr,nc))});
     }
     if(sliders[p]){
       sliders[p].forEach(([dr,dc])=>{let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){const ti=idx(nr,nc);if(brd[ti]){if(enemy(brd[ti],side))add(ti);break;}add(ti);nr+=dr;nc+=dc;}});
