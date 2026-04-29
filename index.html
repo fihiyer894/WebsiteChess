@@ -276,13 +276,13 @@ section{padding:clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem);position:relative;z-
 .price-card{
   background:var(--bg);border:1px solid var(--border);
   padding:2.6rem 2.2rem;border-radius:var(--radius-lg);
-  position:relative;overflow:hidden;
+  position:relative;overflow:visible;
   transition:border-color .35s,transform .35s var(--expo),box-shadow .35s;
 }
 .price-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(201,168,76,.08),transparent 55%);opacity:0;transition:opacity .35s;pointer-events:none}
 .price-card:hover{border-color:rgba(201,168,76,.45);transform:translateY(-7px);box-shadow:var(--shadow-card),var(--glow)}
 .price-card:hover::before{opacity:1}
-.price-card.popular{background:linear-gradient(150deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border-color:rgba(201,168,76,.5);padding-top:3.6rem}
+.price-card.popular{background:linear-gradient(150deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border-color:rgba(201,168,76,.5);padding-top:3.4rem}
 .pop-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold),var(--gold-light));color:#000;font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.22rem 1.1rem;border-radius:100px;white-space:nowrap;box-shadow:0 4px 16px rgba(201,168,76,.3)}
 .price-name{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.2rem}
 .price-amt{font-family:var(--serif);font-size:2.8rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:.25rem}
@@ -1274,7 +1274,6 @@ function submitMain(){
 (()=>{
 'use strict';
 
-/* ---- piece definitions ---- */
 const EMPTY=0,WP=1,WN=2,WB=3,WR=4,WQ=5,WK=6,BP=7,BN=8,BB=9,BR=10,BQ=11,BK=12;
 const WHITE=0,BLACK=1;
 const SYM={[WP]:'♙',[WN]:'♘',[WB]:'♗',[WR]:'♖',[WQ]:'♕',[WK]:'♔',[BP]:'♟',[BN]:'♞',[BB]:'♝',[BR]:'♜',[BQ]:'♛',[BK]:'♚'};
@@ -1302,7 +1301,8 @@ function initBoard(){
 function pieceColor(p){if(isW(p))return WHITE;if(isB(p))return BLACK;return -1;}
 function enemy(p,side){return side===WHITE?isB(p):isW(p);}
 
-function rawMoves(pos, brd, cas, ep){
+/* Генерує псевдо-ходи БЕЗ рокіровки — не викликає sqAttacked, не рекурсує */
+function pseudoMoves(pos, brd, ep){
   const moves=[];
   const {r,c}=rc(pos);
   const p=brd[pos]; if(!p)return[];
@@ -1331,30 +1331,44 @@ function rawMoves(pos, brd, cas, ep){
       [WQ]:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]],
       [BQ]:[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]};
     if(dirs[p]){
-      dirs[p].forEach(([dr,dc])=>{const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8&&pieceColor(brd[idx(nr,nc)])!==side)add(idx(nr,nc))});
+      dirs[p].forEach(([dr,dc])=>{const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8&&pieceColor(brd[idx(nr,nc)])!==side)add(idx(nr,nc));});
     }
     if(sliders[p]){
       sliders[p].forEach(([dr,dc])=>{let nr=r+dr,nc=c+dc;while(nr>=0&&nr<8&&nc>=0&&nc<8){const ti=idx(nr,nc);if(brd[ti]){if(enemy(brd[ti],side))add(ti);break;}add(ti);nr+=dr;nc+=dc;}});
     }
   }
-  // castling
-  if((p===WK||p===BK)&&!isInCheck(brd,side,cas)){
-    if(p===WK&&cas.wk&&!brd[idx(7,5)]&&!brd[idx(7,6)]&&!sqAttacked(brd,idx(7,5),BLACK))add(idx(7,6));
-    if(p===WK&&cas.wq&&!brd[idx(7,3)]&&!brd[idx(7,2)]&&!brd[idx(7,1)]&&!sqAttacked(brd,idx(7,3),BLACK))add(idx(7,2));
-    if(p===BK&&cas.bk&&!brd[idx(0,5)]&&!brd[idx(0,6)]&&!sqAttacked(brd,idx(0,5),WHITE))add(idx(0,6));
-    if(p===BK&&cas.bq&&!brd[idx(0,3)]&&!brd[idx(0,2)]&&!brd[idx(0,1)]&&!sqAttacked(brd,idx(0,3),WHITE))add(idx(0,2));
-  }
   return moves.filter(m=>m.to>=0&&m.to<64&&pieceColor(brd[m.to])!==side);
 }
 
+/* Чи атакується клітинка bySide — використовує pseudoMoves (без рокіровки), рекурсії немає */
 function sqAttacked(brd,sq,bySide){
-  for(let i=0;i<64;i++){const p=brd[i];if(!p)continue;if(pieceColor(p)!==bySide)continue;const ms=rawMoves(i,brd,{wk:false,wq:false,bk:false,bq:false},-1);if(ms.some(m=>m.to===sq))return true;}
+  for(let i=0;i<64;i++){
+    const p=brd[i];if(!p)continue;if(pieceColor(p)!==bySide)continue;
+    if(pseudoMoves(i,brd,-1).some(m=>m.to===sq))return true;
+  }
   return false;
 }
-function isInCheck(brd,side,cas){
-  const kingPiece=side===WHITE?WK:BK;
-  const ki=brd.indexOf(kingPiece); if(ki<0)return false;
+
+function isInCheck(brd,side){
+  const ki=brd.indexOf(side===WHITE?WK:BK);if(ki<0)return false;
   return sqAttacked(brd,ki,1-side);
+}
+
+/* Повні ходи = псевдо + рокіровка (рокіровка перевіряє sqAttacked напряму — безпечно) */
+function rawMoves(pos, brd, cas, ep){
+  const moves=pseudoMoves(pos,brd,ep);
+  const p=brd[pos]; if(!p)return moves;
+  const side=pieceColor(p);
+  const add=(to)=>moves.push({from:pos,to,promo:null});
+  if(p===WK&&!sqAttacked(brd,pos,BLACK)){
+    if(cas.wk&&!brd[idx(7,5)]&&!brd[idx(7,6)]&&!sqAttacked(brd,idx(7,5),BLACK))add(idx(7,6));
+    if(cas.wq&&!brd[idx(7,3)]&&!brd[idx(7,2)]&&!brd[idx(7,1)]&&!sqAttacked(brd,idx(7,3),BLACK))add(idx(7,2));
+  }
+  if(p===BK&&!sqAttacked(brd,pos,WHITE)){
+    if(cas.bk&&!brd[idx(0,5)]&&!brd[idx(0,6)]&&!sqAttacked(brd,idx(0,5),WHITE))add(idx(0,6));
+    if(cas.bq&&!brd[idx(0,3)]&&!brd[idx(0,2)]&&!brd[idx(0,1)]&&!sqAttacked(brd,idx(0,3),WHITE))add(idx(0,2));
+  }
+  return moves;
 }
 
 function applyMove(brd,m,cas,ep){
@@ -1385,7 +1399,7 @@ function applyMove(brd,m,cas,ep){
 
 function legalMovesFor(pos, brd, side, cas, ep){
   const raws=rawMoves(pos,brd,cas,ep);
-  return raws.filter(m=>{const{board:nb,cas:nc}=applyMove(brd,m,cas,ep);return!isInCheck(nb,side,nc);});
+  return raws.filter(m=>{const{board:nb,cas:nc}=applyMove(brd,m,cas,ep);return!isInCheck(nb,side);});
 }
 
 function allLegalMoves(brd,side,cas,ep){
@@ -1426,7 +1440,7 @@ function renderBoard(){
   const cb=el('chessboard'); if(!cb)return;
   cb.innerHTML='';
   // find king in check
-  const kingCheck=isInCheck(board,turn,castling)?(turn===WHITE?board.indexOf(WK):board.indexOf(BK)):-1;
+  const kingCheck=isInCheck(board,turn)?(turn===WHITE?board.indexOf(WK):board.indexOf(BK)):-1;
   for(let r=0;r<8;r++){
     for(let c=0;c<8;c++){
       const i=idx(r,c); const sq=document.createElement('div');
@@ -1516,10 +1530,10 @@ function checkGameState(){
   const all=allLegalMoves(board,turn,castling,epSquare);
   if(all.length===0){
     gameOver=true;
-    if(isInCheck(board,turn,castling)){
+    if(isInCheck(board,turn)){
       updateStatus(turn===WHITE?'Мат! Stockfish переміг ♚':'Мат! Ви перемогли! ♔');
     }else{updateStatus('Пат — нічия ½–½');}
-  }else if(isInCheck(board,turn,castling)){
+  }else if(isInCheck(board,turn)){
     updateStatus(turn===WHITE?'Шах! Захистіть короля 👑':'(Шах боту)');
   }else{
     updateStatus(turn===WHITE?'Ваш хід (білі)':'Stockfish думає…','thinking');
